@@ -1,0 +1,110 @@
+{
+  "client": "Thunder Client",
+  "collectionName": "ANEUPI TV - API Noticias",
+  "dateExported": "2024-11-06",
+  "version": "1.1",
+  "folders": [
+    {
+      "name": "Noticias",
+      "requests": [
+        {
+          "name": "Obtener Todas las Noticias",
+          "method": "GET",
+          "url": "http://localhost:3000/api/noticias",
+          "description": "Obtiene todas las noticias con paginación y filtros opcionales"
+        },
+        {
+          "name": "Obtener Noticias con Filtros",
+          "method": "GET",
+          "url": "http://localhost:3000/api/noticias?search=tecnologia&categoria_id=1&skip=0&take=5&orderBy=desc",
+          "description": "Búsqueda con filtros: search, categoria_id, skip, take, orderBy"
+        },
+        {
+          "name": "Obtener Noticia por ID",
+          "method": "GET",
+          "url": "http://localhost:3000/api/noticias/1",
+          "description": "Obtiene una noticia específica e incrementa las vistas automáticamente"
+        },
+        {
+          "name": "Crear Noticia",
+          "method": "POST",
+          "url": "http://localhost:3000/api/noticias",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"titulo\": \"Nueva noticia de prueba\",\n  \"extracto\": \"Este es un extracto corto de la noticia\",\n  \"contenido_noticia\": \"Este es el contenido completo de la noticia. Aquí va toda la información detallada sobre el tema que se está cubriendo.\",\n  \"url_imagen\": \"https://picsum.photos/800/600\",\n  \"url_preview_imagen\": \"https://picsum.photos/400/300\",\n  \"autor_id\": 1,\n  \"categoria_id\": 1\n}"
+          },
+          "description": "Crea una nueva noticia"
+        },
+        {
+          "name": "Actualizar Noticia",
+          "method": "PUT",
+          "url": "http://localhost:3000/api/noticias/1",
+          "headers": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "type": "json",
+            "raw": "{\n  \"titulo\": \"Título actualizado\",\n  \"extracto\": \"Extracto actualizado\",\n  \"categoria_id\": 2\n}"
+          },
+          "description": "Actualiza una noticia existente. Todos los campos son opcionales."
+        },
+        {
+          "name": "Eliminar Noticia",
+          "method": "DELETE",
+          "url": "http://localhost:3000/api/noticias/1",
+          "description": "Elimina una noticia por ID"
+        },
+        {
+          "name": "Dar Like a Noticia",
+          "method": "POST",
+          "url": "http://localhost:3000/api/noticias/1/like",
+          "description": "Incrementa el contador de likes de una noticia"
+        },
+        {
+          "name": "Dar Dislike a Noticia",
+          "method": "POST",
+          "url": "http://localhost:3000/api/noticias/1/dislike",
+          "description": "Incrementa el contador de dislikes de una noticia"
+        },
+        {
+          "name": "Obtener Noticias Más Vistas",
+          "method": "GET",
+          "url": "http://localhost:3000/api/noticias/mas-vistas?limit=5",
+          "description": "Obtiene las noticias con más vistas"
+        },
+        {
+          "name": "Obtener Noticias por Categoría",
+          "method": "GET",
+          "url": "http://localhost:3000/api/noticias/categoria/1?limit=10",
+          "description": "Obtiene noticias de una categoría específica"
+        }
+      ]
+    },
+    {
+      "name": "Sistema",
+      "requests": [
+        {
+          "name": "Health Check",
+          "method": "GET",
+          "url": "http://localhost:3000/health",
+          "description": "Verifica el estado del servidor"
+        },
+        {
+          "name": "Info de la API",
+          "method": "GET",
+          "url": "http://localhost:3000/",
+          "description": "Información general de la API"
+        }
+      ]
+    }
+  ]
+}

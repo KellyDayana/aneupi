@@ -1,0 +1,189 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+@theme inline {
+  /* Updated font to Arial as per project guidelines */
+  --font-sans: Arial, Helvetica, sans-serif;
+
+  /* Project color scheme - Blue: #003952, Red: #DC2626 */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-card: #ffffff;
+  --color-card-foreground: #0a0a0a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #0a0a0a;
+
+  /* Primary color - Dark Teal Blue #003952 */
+  --color-primary: #003952;
+  --color-primary-foreground: #fafafa;
+
+  --color-secondary: #f4f4f5;
+  --color-secondary-foreground: #18181b;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  --color-accent: #f4f4f5;
+  --color-accent-foreground: #18181b;
+
+  /* Destructive/Alert color - Bright Red #DC2626 */
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #fafafa;
+
+  --color-border: #e4e4e7;
+  --color-input: #e4e4e7;
+  --color-ring: #18181b;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Custom project colors for category tags and accents */
+  --color-category-red: #dc2626;
+  --color-teal-blue: #003952;
+}
+
+@layer base {
+  /* Don't force borders/outlines on every element — that produced unwanted blue lines
+     around cards and images. Use box-sizing globally and apply borders explicitly where
+     needed (e.g., Card component). */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* Base paragraph font size: 14px -> 0.875rem (relative to browser root font-size) */
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  /* Set heading sizes - titles to 25px as per project guidelines */
+  /* Heading sizes converted to relative units with a small fluid range for better responsivity */
+  h1,
+  h2,
+  h3 {
+    /* Use clamp to allow fluid scaling between a sensible min and max */
+    font-size: clamp(1.25rem, 2.2vw, 1.5625rem); /* 20px - 25px */
+    font-weight: 700;
+    line-height: 1.3;
+  }
+
+  h4 {
+    font-size: clamp(1rem, 1.6vw, 1.25rem); /* 16px - 20px */
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  h5 {
+    font-size: 1rem; /* 16px */
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  h6 {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+.page-root .news-border {
+  box-sizing: border-box;
+  border: 1px solid #000 !important;
+  border-radius: inherit;
+}
+}
+
+/* Adding live pulse animation for TV en Vivo icon */
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+}
+
+.live-pulse {
+  animation: live-pulse 2s ease-in-out infinite;
+}
+
+@theme {
+  /* 1. Establecemos el color principal */
+  --color-primary: #003952;
+  
+  /* 2. Forzamos Arial como la fuente principal del sistema */
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+@layer base {
+  /* Aplicamos la fuente y el tamaño de párrafo globalmente */
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    background-color: #f8fafc; /* Fondo suave para el panel */
+    color: #334155; /* Color de texto legible para párrafos */
+  }
+
+  /* Aplicamos el tamaño y color principal a todos los títulos */
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 25px;
+    font-weight: 700;
+    color: var(--color-primary);
+  }
+
+  p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}

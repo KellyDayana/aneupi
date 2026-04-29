@@ -1,0 +1,177 @@
+### Variables
+@baseUrl = http://localhost:3000
+@apiUrl = {{baseUrl}}/api/noticias
+
+###############################################
+# SISTEMA
+###############################################
+
+### Health Check
+GET {{baseUrl}}/health
+
+### Info de la API
+GET {{baseUrl}}/
+
+###############################################
+# NOTICIAS - CONSULTAS
+###############################################
+
+### Obtener todas las noticias
+GET {{apiUrl}}
+
+### Obtener noticias con paginación
+GET {{apiUrl}}?skip=0&take=5
+
+### Buscar noticias
+GET {{apiUrl}}?search=Ecuador
+
+### Obtener noticias por categoría
+GET {{apiUrl}}?categoria_id=1
+
+### Obtener noticias por autor
+GET {{apiUrl}}?autor_id=1
+
+### Búsqueda avanzada con múltiples filtros
+GET {{apiUrl}}?search=tecnologia&categoria_id=1&skip=0&take=3&orderBy=desc
+
+### Obtener noticia por ID
+GET {{apiUrl}}/1
+
+### Obtener noticias más vistas
+GET {{apiUrl}}/mas-vistas?limit=5
+
+### Obtener noticias por categoría específica
+GET {{apiUrl}}/categoria/1?limit=10
+
+###############################################
+# NOTICIAS - CREAR
+###############################################
+
+### Crear una nueva noticia
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "titulo": "Inteligencia Artificial transforma la educación universitaria",
+  "extracto": "Las universidades ecuatorianas adoptan sistemas de IA para personalizar el aprendizaje.",
+  "contenido_noticia": "La implementación de inteligencia artificial en las aulas universitarias está revolucionando la forma en que los estudiantes aprenden. Sistemas adaptativos de aprendizaje están siendo utilizados para identificar las necesidades individuales de cada alumno y proporcionar contenido personalizado que maximiza su potencial de aprendizaje. Las instituciones educativas reportan mejoras significativas en el rendimiento académico y la satisfacción estudiantil.",
+  "url_imagen": "https://images.unsplash.com/photo-1677442136019-21780ecad995",
+  "url_preview_imagen": "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400",
+  "autor_id": 1,
+  "categoria_id": 1
+}
+
+### Crear noticia - Ejemplo 2
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "titulo": "Ecuador lidera en energías renovables en la región",
+  "extracto": "El país supera las metas de generación limpia establecidas para 2025.",
+  "contenido_noticia": "Ecuador se posiciona como líder regional en la adopción de energías renovables, superando las expectativas con la inauguración de nuevos parques solares y eólicos. El gobierno anuncia que el 70% de la energía consumida en el país proviene ahora de fuentes limpias, estableciendo un ejemplo para la región.",
+  "url_imagen": "https://images.unsplash.com/photo-1509391366360-2e959784a276",
+  "url_preview_imagen": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=400",
+  "autor_id": 2,
+  "categoria_id": 2
+}
+
+###############################################
+# NOTICIAS - ACTUALIZAR
+###############################################
+
+### Actualizar título y extracto
+PUT {{apiUrl}}/1
+Content-Type: application/json
+
+{
+  "titulo": "Título actualizado - Nueva versión",
+  "extracto": "Este es el nuevo extracto de la noticia actualizada"
+}
+
+### Actualizar categoría
+PUT {{apiUrl}}/1
+Content-Type: application/json
+
+{
+  "categoria_id": 2
+}
+
+### Actualizar contenido completo
+PUT {{apiUrl}}/1
+Content-Type: application/json
+
+{
+  "titulo": "Noticia completamente actualizada",
+  "extracto": "Nuevo extracto con información relevante",
+  "contenido_noticia": "Contenido completamente renovado con información actualizada y más detallada.",
+  "url_imagen": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d",
+  "url_preview_imagen": "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=400"
+}
+
+###############################################
+# NOTICIAS - INTERACCIONES
+###############################################
+
+### Dar like a una noticia
+POST {{apiUrl}}/1/like
+
+### Dar dislike a una noticia
+POST {{apiUrl}}/1/dislike
+
+###############################################
+# NOTICIAS - ELIMINAR
+###############################################
+
+### Eliminar noticia
+DELETE {{apiUrl}}/1
+
+###############################################
+# EJEMPLOS DE RESPUESTAS ESPERADAS
+###############################################
+
+### Ejemplo: Error - Noticia no encontrada
+GET {{apiUrl}}/999
+
+### Ejemplo: Error - Crear sin datos requeridos
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "titulo": "Solo título"
+}
+
+###############################################
+# TESTS DE FLUJO COMPLETO
+###############################################
+
+### 1. Crear una noticia
+# @name crearNoticia
+POST {{apiUrl}}
+Content-Type: application/json
+
+{
+  "titulo": "Noticia de prueba para flujo completo",
+  "extracto": "Esta es una noticia de prueba",
+  "contenido_noticia": "Contenido de prueba para validar el flujo completo de la API.",
+  "url_imagen": "https://picsum.photos/800/600",
+  "url_preview_imagen": "https://picsum.photos/400/300",
+  "autor_id": 1,
+  "categoria_id": 1
+}
+
+### 2. Obtener la noticia creada (usar el ID de la respuesta anterior)
+GET {{apiUrl}}/{{crearNoticia.response.body.data.noticia_id}}
+
+### 3. Dar like a la noticia
+POST {{apiUrl}}/{{crearNoticia.response.body.data.noticia_id}}/like
+
+### 4. Actualizar la noticia
+PUT {{apiUrl}}/{{crearNoticia.response.body.data.noticia_id}}
+Content-Type: application/json
+
+{
+  "titulo": "Título actualizado en el flujo"
+}
+
+### 5. Eliminar la noticia
+DELETE {{apiUrl}}/{{crearNoticia.response.body.data.noticia_id}}

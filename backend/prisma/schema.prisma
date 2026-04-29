@@ -1,0 +1,262 @@
+// prisma/schema.prisma - VERSIÓN MAESTRA UNIFICADA
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- MODELOS DE ENTIDADES PRINCIPALES ---
+
+model Usuario {
+  usuarioId         Int      @id @default(autoincrement()) @map("usuario_id")
+  nombre_completo   String
+  email             String   @unique
+  contrasena_hash   String
+  rol               String
+  fecha_registro    DateTime @default(now())
+
+  noticias             Noticia[]
+  articulos            Articulo[]
+  programasPresenta    Programa[]
+  comentariosNoticia   ComentarioNoticia[]
+  comentariosArticulo  ComentarioArticulo[]
+  comentariosVideo     ComentarioVideo[]
+  reacciones           ReaccionContenido[]
+  solicitudesEntrevista SolicitudEntrevista[]
+  @@map("usuario")
+}
+
+model Categoria {
+  categoriaId Int       @id @default(autoincrement()) @map("categoria_id")
+  nombre      String    @unique
+  noticias    Noticia[]
+  articulos   Articulo[]
+  videos      TvVideo[]
+  @@map("categoria")
+}
+
+model Noticia {
+  noticiaId          Int      @id @default(autoincrement()) @map("noticia_id")
+  titulo             String
+  extracto           String
+  contenido_noticia  String   @db.Text
+  url_imagen         String
+  url_preview_imagen String
+  estado             EstadoNoticia @default(PENDIENTE_APROBACION)
+  vistas             Int      @default(0)
+  fechaPublicacion   DateTime @default(now()) @map("fecha_publicacion")
+  autorId            Int      @map("autor_id")
+  categoriaId        Int      @map("categoria_id")
+
+  autor       Usuario             @relation(fields: [autorId], references: [usuarioId])
+  categoria   Categoria           @relation(fields: [categoriaId], references: [categoriaId])
+  comentarios ComentarioNoticia[]
+  reacciones  ReaccionContenido[]
+  @@map("noticia")
+}
+
+model Articulo {
+  articuloId         Int      @id @default(autoincrement()) @map("articulo_id")
+  titulo             String
+  descripcion        String
+  contenido          String   @db.Text
+  url_imagen         String
+  url_preview_imagen String
+  tiempo_lectura     Int
+  estado             EstadoNoticia @default(PENDIENTE_APROBACION)
+  vistas             Int      @default(0)
+  fechaPublicacion   DateTime @default(now()) @map("fecha_publicacion")
+  autorId            Int      @map("autor_id")
+  categoriaId        Int      @map("categoria_id")
+
+  autor       Usuario              @relation(fields: [autorId], references: [usuarioId])
+  categoria   Categoria            @relation(fields: [categoriaId], references: [categoriaId])
+  comentarios ComentarioArticulo[] @relation("ComentariosArticulo")
+  reacciones  ReaccionContenido[]  @relation("ReaccionesArticulo")
+  @@map("articulo")
+}
+
+model Newsletter {
+  newsletterId  Int      @id @default(autoincrement()) @map("newsletter_id")
+  titulo        String   @unique
+  descripcion   String
+  frecuencia    String   // ej: "Diario - 7:00 AM"
+  
+  suscriptores  Suscriptor[]
+
+  @@map("newsletter")
+}
+
+model Suscriptor {
+  suscriptorId  Int      @id @default(autoincrement()) @map("suscriptor_id")
+  email         String   @unique
+  fechaSuscripcion DateTime @default(now())
+  
+  // Relación muchos-a-muchos con Newsletter
+  newsletters   Newsletter[]
+
+  @@map("suscriptor")
+}
+
+model TvVideo {
+  videoId           Int      @id @default(autoincrement()) @map("video_id")
+  titulo            String
+  descripcion       String
+  urlVideo          String   @map("url_video")
+  urlThumbnail      String   @map("url_thumbnail")
+  duracionSegundos  Int      @map("duracion_segundos")
+  vistas            Int      @default(0)
+  likes             Int      @default(0)
+  dislikes          Int      @default(0)
+  enVivo            Boolean  @default(false) @map("en_vivo")
+  fechaPublicacion  DateTime @default(now()) @map("fecha_publicacion")
+  programaId        Int      @map("programa_id")
+  categoriaId       Int      @map("categoria_id")
+
+  programa    Programa          @relation(fields: [programaId], references: [programaId])
+  categoria   Categoria         @relation(fields: [categoriaId], references: [categoriaId])
+  comentarios ComentarioVideo[]
+  @@map("tv_video")
+}
+
+model Programa {
+  programaId    Int                @id @default(autoincrement()) @map("programa_id")
+  nombre        String
+  descripcion   String
+  frecuencia    String
+  presentadorId Int                @map("presentador_id")
+  
+  presentador  Usuario            @relation(fields: [presentadorId], references: [usuarioId])
+  videos       TvVideo[]
+  programacion ProgramacionItem[]
+  @@map("programa")
+}
+
+// --- MODELOS DE SOPORTE Y FUNCIONALIDAD ---
+
+model ProgramacionItem {
+  id                Int      @id @default(autoincrement())
+  titulo            String
+  descripcion       String
+  fecha_hora_inicio DateTime
+  programaId        Int      @map("programa_id")
+
+  programa Programa @relation(fields: [programaId], references: [programaId])
+  @@map("programacion_item")
+}
+
+model ComentarioNoticia {
+  comentarioId Int      @id @default(autoincrement()) @map("comentario_id")
+  mensaje      String   @db.Text
+  estado       EstadoComentario @default(VISIBLE)
+  fecha_hora   DateTime @default(now())
+  usuarioId    Int      @map("usuario_id")
+  noticiaId    Int      @map("noticia_id")
+  respuestaAId Int?     @map("respuesta_a_id")
+
+  usuario     Usuario              @relation(fields: [usuarioId], references: [usuarioId])
+  noticia     Noticia              @relation(fields: [noticiaId], references: [noticiaId], onDelete: Cascade)
+  respuesta_a ComentarioNoticia?   @relation("RespuestasComentario", fields: [respuestaAId], references: [comentarioId])
+  respuestas  ComentarioNoticia[]  @relation("RespuestasComentario")
+  reacciones  ReaccionContenido[]
+  @@map("comentario_noticia")
+}
+
+model ComentarioArticulo {
+  comentarioId Int      @id @default(autoincrement()) @map("comentario_id")
+  mensaje      String   @db.Text
+  estado       EstadoComentario @default(VISIBLE)
+  fecha_hora   DateTime @default(now())
+  usuarioId    Int      @map("usuario_id")
+  articuloId   Int      @map("articulo_id")
+  respuestaAId Int?     @map("respuesta_a_id")
+
+  usuario     Usuario              @relation(fields: [usuarioId], references: [usuarioId])
+  articulo    Articulo             @relation("ComentariosArticulo", fields: [articuloId], references: [articuloId], onDelete: Cascade)
+  respuesta_a ComentarioArticulo?  @relation("RespuestasComentarioArticulo", fields: [respuestaAId], references: [comentarioId])
+  respuestas  ComentarioArticulo[] @relation("RespuestasComentarioArticulo")
+  reacciones  ReaccionContenido[]  @relation("ReaccionesComentarioArticulo")
+  @@map("comentario_articulo")
+}
+
+model ComentarioVideo {
+  comentarioId Int      @id @default(autoincrement()) @map("comentario_id")
+  mensaje      String   @db.Text
+  fecha_hora   DateTime @default(now())
+  usuarioId    Int      @map("usuario_id")
+  videoId      Int      @map("video_id")
+  respuestaAId Int?     @map("respuesta_a_id")
+
+  usuario     Usuario           @relation(fields: [usuarioId], references: [usuarioId])
+  video       TvVideo           @relation(fields: [videoId], references: [videoId])
+  respuesta_a ComentarioVideo?  @relation("RespuestasVideo", fields: [respuestaAId], references: [comentarioId])
+  respuestas  ComentarioVideo[] @relation("RespuestasVideo")
+  @@map("comentario_video")
+}
+
+model SolicitudEntrevista {
+  solicitudId           Int      @id @default(autoincrement()) @map("solicitud_id")
+  nombre_completo       String
+  profesion             String?
+  cedula_identificacion String?
+  email                 String
+  telefono_contacto     String
+  tema_titulo           String
+  descripcion_proposito String   @db.Text
+  tipo_entrevista       String
+  estado                String
+  fecha_solicitud       DateTime @default(now())
+  
+  usuarioId Int? @map("usuario_id")
+  usuario   Usuario? @relation(fields: [usuarioId], references: [usuarioId])
+  @@map("solicitud_entrevista")
+}
+
+enum TipoReaccion {
+  LIKE
+  DISLIKE
+  CORAZON
+  RISA
+  APLAUSO
+}
+
+enum EstadoNoticia {
+  PENDIENTE_APROBACION
+  APROBADO
+  PUBLICADO
+  OCULTO
+  PROGRAMADO
+  RECHAZADO
+}
+
+enum EstadoComentario {
+  VISIBLE
+  OCULTO
+}
+model ReaccionContenido {
+  reaccionId             Int      @id @default(autoincrement()) @map("reaccion_id")
+  tipoReaccion           TipoReaccion @map("tipo_reaccion")
+  usuarioId              Int      @map("usuario_id")
+  fechaCreacion          DateTime @default(now()) @map("fecha_creacion")
+  
+  noticiaId              Int?     @map("noticia_id")
+  articuloId             Int?     @map("articulo_id")
+  comentarioNoticiaId    Int?     @map("comentario_noticia_id")
+  comentarioArticuloId   Int?     @map("comentario_articulo_id")
+
+  usuario              Usuario              @relation(fields: [usuarioId], references: [usuarioId], onDelete: Cascade)
+  noticia              Noticia?             @relation(fields: [noticiaId], references: [noticiaId], onDelete: Cascade)
+  articulo             Articulo?            @relation("ReaccionesArticulo", fields: [articuloId], references: [articuloId], onDelete: Cascade)
+  comentarioNoticia    ComentarioNoticia?   @relation(fields: [comentarioNoticiaId], references: [comentarioId], onDelete: Cascade)
+  comentarioArticulo   ComentarioArticulo?  @relation("ReaccionesComentarioArticulo", fields: [comentarioArticuloId], references: [comentarioId], onDelete: Cascade)
+  
+  @@unique([usuarioId, noticiaId], name: "unique_usuario_noticia")
+  @@unique([usuarioId, articuloId], name: "unique_usuario_articulo")
+  @@unique([usuarioId, comentarioNoticiaId], name: "unique_usuario_comentario_noticia")
+  @@unique([usuarioId, comentarioArticuloId], name: "unique_usuario_comentario_articulo")
+  @@map("reaccion_contenido")
+}
