@@ -35,14 +35,24 @@ export class ArticulosService {
     return { ...articulo, reacciones };
   }
 
-  async crearArticulo(data: CrearArticuloDTO) {
+  async crearArticulo(data: CrearArticuloDTO, esAdmin: boolean = false) {
     this.validarCamposObligatorios(data);
     this.validarTiempoLectura(data.tiempo_lectura);
+
+    // Si no es admin, forzar estado PENDIENTE_APROBACION
+    if (!esAdmin) {
+      data.estado = EstadoNoticia.PENDIENTE_APROBACION;
+    }
 
     return await this.repository.crear(data);
   }
 
-  async obtenerArticulos(filtros: FiltrosArticulo) {
+  async obtenerArticulos(filtros: FiltrosArticulo, soloPublicados: boolean = false) {
+    // Si soloPublicados=true (vista pública), forzar filtro PUBLICADO
+    if (soloPublicados) {
+      filtros.estado = EstadoNoticia.PUBLICADO;
+    }
+
     const articulos = await this.repository.obtenerTodos(filtros);
     if (articulos.length === 0) return [];
 
@@ -129,7 +139,23 @@ export class ArticulosService {
 
     this.validarTransicionEstado(articuloExistente.estado as EstadoArticulo, data.estado);
 
-    return await this.repository.cambiarEstado(id, data.estado);
+    return await this.repository.cambiarEstado(id, data.estado, data.motivo_rechazo);
+  }
+
+  async aprobarArticulo(id: number) {
+    const articuloExistente = await this.repository.obtenerPorId(id);
+    if (!articuloExistente) throw new Error(`Artículo con ID ${id} no encontrado`);
+    return await this.repository.cambiarEstado(id, EstadoNoticia.PUBLICADO, undefined);
+  }
+
+  async rechazarArticulo(id: number, motivo_rechazo?: string) {
+    const articuloExistente = await this.repository.obtenerPorId(id);
+    if (!articuloExistente) throw new Error(`Artículo con ID ${id} no encontrado`);
+    return await this.repository.cambiarEstado(id, EstadoNoticia.RECHAZADO, motivo_rechazo);
+  }
+
+  async obtenerArticulosPendientes() {
+    return await this.repository.obtenerPendientes();
   }
 
   async actualizarTiempoLectura(id: number, data: ActualizarTiempoLecturaDTO) {

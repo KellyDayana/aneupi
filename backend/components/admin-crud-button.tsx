@@ -13,7 +13,7 @@ export function AdminCrudButton({ section }: AdminCrudButtonProps) {
   const { userRole } = useUser()
   const [crudModalOpen, setCrudModalOpen] = useState(false)
 
-  if (userRole !== "superadmin") {
+  if (userRole !== "admin") {
     return null
   }
 

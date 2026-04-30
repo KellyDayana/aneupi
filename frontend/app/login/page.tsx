@@ -6,25 +6,12 @@ import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useUser } from "@/contexts/user-context"
 
-// Credenciales de prueba
-const mockAdmin = {
-  email: "admin@aneupi.local",
-  password: "123",
-  name: "Administrador",
-  role: "superadmin",
-}
-const mockAdmin2 = {
-  email: "admin2@aneupi.local",
-  password: "Admin123!",
-  name: "Administrador 2",
-  role: "superadmin",
-}
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { setUserRole, isLoggedIn } = useUser()
+  const { login, isLoggedIn } = useUser()
 
-  // Si ya está logueado, redirigir a admin
   useEffect(() => {
     if (isLoggedIn) {
       router.push("/administrador/inicio")
@@ -40,28 +27,38 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsLoading(true)
     setError("")
     setMessage("")
 
-    // Simular delay de autenticación
-    setTimeout(() => {
-      if (
-        (formData.email === mockAdmin.email && formData.password === mockAdmin.password) ||
-        (formData.email === mockAdmin2.email && formData.password === mockAdmin2.password)
-      ) {
-        setMessage("✓ Autenticación exitosa. Redirigiendo al panel de administración...")
-        setUserRole("superadmin")
-        setTimeout(() => {
-          router.push("/administrador/inicio")
-        }, 800)
-      } else {
+    try {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: formData.password }),
+      })
+      const json = await res.json()
+
+      if (!res.ok) {
         setError("❌ Credenciales incorrectas. Verifica tu correo y contraseña.")
+        return
       }
+
+      const { user, token } = json.data
+      const rolFrontend = user.rol === "admin" ? "superadmin" : "usuario"
+      login(token, rolFrontend, user.usuarioId)
+
+      setMessage("✓ Autenticación exitosa. Redirigiendo...")
+      setTimeout(() => {
+        router.push("/administrador/inicio")
+      }, 600)
+    } catch (err) {
+      setError("❌ No se pudo conectar con el servidor.")
+    } finally {
       setIsLoading(false)
-    }, 600)
+    }
   }
 
   return (

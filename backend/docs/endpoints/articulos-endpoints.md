@@ -316,3 +316,72 @@ GET /api/articulos/mas-leidos
 
 ---
 
+
+---
+
+## 🆕 Endpoints de Moderación (nuevos)
+
+### Listar artículos pendientes de revisión
+```http
+GET /api/articulos/pendientes
+Authorization: Bearer <token_admin>
+```
+
+**Respuesta (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "articuloId": 12,
+      "titulo": "Mi artículo de opinión",
+      "descripcion": "Resumen...",
+      "estado": "PENDIENTE_APROBACION",
+      "fechaPublicacion": "2026-04-29T14:00:00.000Z",
+      "autor": { "usuarioId": 5, "nombre_completo": "Juan Pérez", "email": "juan@email.com" },
+      "categoria": { "categoriaId": 3, "nombre": "Opinión" }
+    }
+  ],
+  "count": 1
+}
+```
+
+### Aprobar artículo
+```http
+PUT /api/articulos/:id/aprobar
+Authorization: Bearer <token_admin>
+```
+Cambia el estado a `PUBLICADO`. No requiere body.
+
+### Rechazar artículo
+```http
+PUT /api/articulos/:id/rechazar
+Authorization: Bearer <token_admin>
+```
+**Body (opcional):**
+```json
+{ "motivo_rechazo": "El contenido no cumple con las políticas editoriales." }
+```
+Cambia el estado a `RECHAZADO` y guarda el motivo.
+
+## 🔐 Comportamiento según rol al crear artículo
+
+| Rol       | Estado asignado automáticamente  | Puede especificar estado |
+|-----------|----------------------------------|--------------------------|
+| `admin`   | El que envíe en el body          | ✅ Sí                    |
+| `usuario` | `PENDIENTE_APROBACION` (forzado) | ❌ No                    |
+
+## 📋 Tabla de permisos actualizada
+
+| Acción                        | Método | Ruta                                  | Auth         |
+|-------------------------------|--------|---------------------------------------|--------------|
+| Crear artículo                | POST   | `/api/articulos`                      | ✅ Autenticado |
+| Listar artículos              | GET    | `/api/articulos`                      | ❌ Pública (solo PUBLICADO sin auth) |
+| Obtener por ID                | GET    | `/api/articulos/:id`                  | ❌ Pública   |
+| Actualizar artículo           | PUT    | `/api/articulos/:id`                  | ✅ Autenticado |
+| Cambiar estado                | PATCH  | `/api/articulos/:id/estado`           | ✅ Admin     |
+| Ocultar artículo              | DELETE | `/api/articulos/:id`                  | ✅ Autenticado |
+| Eliminar permanentemente      | DELETE | `/api/articulos/:id/permanente`       | ✅ Admin     |
+| **Listar pendientes**         | GET    | `/api/articulos/pendientes`           | ✅ **Admin** |
+| **Aprobar artículo**          | PUT    | `/api/articulos/:id/aprobar`          | ✅ **Admin** |
+| **Rechazar artículo**         | PUT    | `/api/articulos/:id/rechazar`         | ✅ **Admin** |

@@ -7,11 +7,14 @@ export class ArticulosController {
 
   crearArticulo = async (req: Request, res: Response) => {
     try {
-      const articulo = await this.service.crearArticulo(req.body);
+      const esAdmin = req.user?.rol === 'admin';
+      const articulo = await this.service.crearArticulo(req.body, esAdmin);
       res.status(201).json({
         success: true,
         data: articulo,
-        message: 'Artículo creado exitosamente',
+        message: esAdmin
+          ? 'Artículo creado exitosamente'
+          : 'Artículo enviado para revisión. Será publicado una vez aprobado.',
       });
     } catch (error) {
       res.status(400).json({
@@ -24,8 +27,8 @@ export class ArticulosController {
   obtenerArticulos = async (req: Request, res: Response) => {
     try {
       const filtros: FiltrosArticulo = {
-        categoriaId: req.query.categoria_id ? Number(req.query.categoria_id) : undefined, // Corregido
-        autorId: req.query.autor_id ? Number(req.query.autor_id) : undefined, // Corregido
+        categoriaId: req.query.categoria_id ? Number(req.query.categoria_id) : undefined,
+        autorId: req.query.autor_id ? Number(req.query.autor_id) : undefined,
         estado: req.query.estado as any,
         search: req.query.search as string,
         skip: req.query.skip ? Number(req.query.skip) : 0,
@@ -33,7 +36,11 @@ export class ArticulosController {
         orderBy: (req.query.orderBy as 'asc' | 'desc') || 'desc',
       };
 
-      const articulos = await this.service.obtenerArticulos(filtros);
+      // Si el usuario es admin puede ver todos los estados; si no, solo publicados
+      const esAdmin = req.user?.rol === 'admin';
+      const soloPublicados = !esAdmin && !filtros.estado;
+
+      const articulos = await this.service.obtenerArticulos(filtros, soloPublicados);
 
       res.status(200).json({
         success: true,
@@ -185,6 +192,57 @@ export class ArticulosController {
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : 'Error al obtener artículos',
+      });
+    }
+  };
+
+  obtenerPendientes = async (req: Request, res: Response) => {
+    try {
+      const articulos = await this.service.obtenerArticulosPendientes();
+      res.status(200).json({
+        success: true,
+        data: articulos,
+        count: articulos.length,
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Error al obtener artículos pendientes',
+      });
+    }
+  };
+
+  aprobarArticulo = async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const articulo = await this.service.aprobarArticulo(id);
+      res.status(200).json({
+        success: true,
+        data: articulo,
+        message: 'Artículo aprobado y publicado exitosamente',
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Error al aprobar el artículo',
+      });
+    }
+  };
+
+  rechazarArticulo = async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const { motivo_rechazo } = req.body;
+      const articulo = await this.service.rechazarArticulo(id, motivo_rechazo);
+      res.status(200).json({
+        success: true,
+        data: articulo,
+        message: 'Artículo rechazado',
+      });
+    } catch (error) {
+      res.status(400).json({
+        success: false,
+        error: error instanceof Error ? error.message : 'Error al rechazar el artículo',
       });
     }
   };

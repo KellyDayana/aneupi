@@ -150,10 +150,13 @@ export class ArticulosRepository {
     });
   }
 
-  async cambiarEstado(id: number, estado: EstadoNoticia) {
+  async cambiarEstado(id: number, estado: EstadoNoticia, motivo_rechazo?: string) {
     return this.prisma.articulo.update({
       where: { articuloId: id }, // Corregido
-      data: { estado },
+      data: {
+        estado,
+        motivo_rechazo: motivo_rechazo ?? null,
+      },
       include: {
         autor: {
           select: {
@@ -214,6 +217,23 @@ export class ArticulosRepository {
         },
         categoria: true,
       },
+    });
+  }
+
+  async obtenerPendientes() {
+    return this.prisma.articulo.findMany({
+      where: { estado: EstadoNoticia.PENDIENTE_APROBACION },
+      include: {
+        autor: {
+          select: {
+            usuarioId: true,
+            nombre_completo: true,
+            email: true,
+          },
+        },
+        categoria: true,
+      },
+      orderBy: { fechaPublicacion: 'asc' },
     });
   }
 }

@@ -28,6 +28,7 @@ export interface ActualizarArticuloDTO {
 
 export interface CambiarEstadoArticuloDTO {
   estado: EstadoArticulo;
+  motivo_rechazo?: string;
 }
 
 export interface FiltrosArticulo {

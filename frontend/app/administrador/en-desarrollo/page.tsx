@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Hammer, Plus, Edit, Trash2, Clock, CheckCircle2, AlertCircle, BarChart3, Settings } from 'lucide-react';
+import { Hammer, Plus, Edit, Trash2, Clock, CheckCircle2, AlertCircle, BarChart3, Settings, AppWindow } from 'lucide-react';
 
 // --- INTERFACES ---
 interface Project {
@@ -12,6 +12,7 @@ interface Project {
     progress: number;
     assignedTo: string;
     dueDate: string;
+    moduleTarget: string; // NUEVO: El módulo al que afecta
 }
 
 export default function EnDesarrolloAdminPage() {
@@ -20,38 +21,32 @@ export default function EnDesarrolloAdminPage() {
         {
             id: 1,
             title: 'Nuevo Módulo de Analítica',
-            description: 'Panel de estadísticas avanzadas para ver el alcance de la TV en Vivo y las visualizaciones de artículos en tiempo real.',
+            description: 'Panel de estadísticas avanzadas para ver el alcance de la TV en Vivo.',
             status: 'En Desarrollo',
             progress: 65,
             assignedTo: 'Equipo Backend',
             dueDate: '30 May 2026',
+            moduleTarget: 'TvVivo' // Vinculado a TV
         },
         {
             id: 2,
             title: 'Integración Pasarela de Pagos',
-            description: 'Conexión con Banco ANEUPI para permitir donaciones y suscripciones premium desde la plataforma.',
+            description: 'Conexión con Banco ANEUPI para permitir donaciones.',
             status: 'Planificación',
             progress: 15,
             assignedTo: 'Equipo Frontend',
             dueDate: '15 Jun 2026',
+            moduleTarget: 'Global' // Afecta a toda la app
         },
         {
             id: 3,
-            title: 'App Móvil ANEUPI (Versión Beta)',
-            description: 'Desarrollo de la aplicación nativa para iOS y Android compartiendo la misma base de datos.',
+            title: 'Mejoras en el Slider Principal',
+            description: 'Transiciones 3D para las noticias principales de la portada.',
             status: 'En Pruebas',
             progress: 90,
-            assignedTo: 'Equipo Móvil',
+            assignedTo: 'Equipo Frontend',
             dueDate: '10 May 2026',
-        },
-        {
-            id: 4,
-            title: 'Asistente Virtual AGALE (V2)',
-            description: 'Mejora del modelo de lenguaje para respuestas más rápidas y contextuales sobre los artículos publicados.',
-            status: 'Pausado',
-            progress: 40,
-            assignedTo: 'IA & Datos',
-            dueDate: 'Sin fecha',
+            moduleTarget: 'Inicio' // Vinculado a Inicio
         }
     ]);
 
@@ -86,15 +81,16 @@ export default function EnDesarrolloAdminPage() {
         const progress = Number(formData.get('progress'));
         const assignedTo = formData.get('assignedTo') as string;
         const dueDate = formData.get('dueDate') as string;
+        const moduleTarget = formData.get('moduleTarget') as string;
 
         if (selectedProject) {
             setProjects(projects.map(p =>
-                p.id === selectedProject.id ? { ...p, title, description, status, progress, assignedTo, dueDate } : p
+                p.id === selectedProject.id ? { ...p, title, description, status, progress, assignedTo, dueDate, moduleTarget } : p
             ));
         } else {
             const newProject: Project = {
                 id: Date.now(),
-                title, description, status, progress, assignedTo, dueDate
+                title, description, status, progress, assignedTo, dueDate, moduleTarget
             };
             setProjects([newProject, ...projects]);
         }
@@ -173,9 +169,15 @@ export default function EnDesarrolloAdminPage() {
                     <div key={project.id} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow flex flex-col group relative">
 
                         <div className="flex justify-between items-start mb-3">
-                            <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${getStatusColor(project.status)}`}>
-                                {project.status}
-                            </span>
+                            <div className="flex gap-2">
+                                <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full border ${getStatusColor(project.status)}`}>
+                                    {project.status}
+                                </span>
+                                {/* ETIQUETA DEL MÓDULO ASIGNADO */}
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-gray-800 text-white flex items-center gap-1">
+                                    <AppWindow size={10} /> {project.moduleTarget}
+                                </span>
+                            </div>
 
                             {/* Controles de Admin */}
                             <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -234,8 +236,20 @@ export default function EnDesarrolloAdminPage() {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                                 <div className="md:col-span-2">
-                                    <label className="block text-gray-700 font-medium mb-1 text-[13px]">Nombre del Módulo o Proyecto</label>
+                                    <label className="block text-gray-700 font-medium mb-1 text-[13px]">Nombre del Proyecto</label>
                                     <input type="text" name="title" defaultValue={selectedProject?.title || ''} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#003952] outline-none text-[14px]" placeholder="Ej: Pasarela de Pagos" required />
+                                </div>
+
+                                {/* NUEVO CAMPO: SELECCIÓN DEL MÓDULO */}
+                                <div className="md:col-span-2">
+                                    <label className="block text-gray-700 font-medium mb-1 text-[13px]">Módulo Afectado (Vinculación)</label>
+                                    <select name="moduleTarget" defaultValue={selectedProject?.moduleTarget || 'Global'} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#003952] outline-none text-[14px] bg-white">
+                                        <option value="Global">Global (Toda la Plataforma)</option>
+                                        <option value="Inicio">Inicio / Portada</option>
+                                        <option value="Articulos">Artículos</option>
+                                        <option value="TvVivo">TV en Vivo</option>
+                                        <option value="Configuracion">Configuración</option>
+                                    </select>
                                 </div>
 
                                 <div>
