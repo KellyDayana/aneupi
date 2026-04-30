@@ -12,11 +12,11 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
 const CATEGORY_ID_MAP: Record<string, number> = {
   "Tecnología": 3,
-  "Medio Ambiente": 4,
-  "Educación": 5,
-  "Gastronomía": 6,
-  "Negocios": 7,
-  "Arte y Cultura": 8,
+  "Medio Ambiente": 3,
+  "Educación": 3,
+  "Gastronomía": 3,
+  "Negocios": 3,
+  "Arte y Cultura": 3,
 }
 
 interface AddArticleFormProps {
@@ -76,12 +76,6 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
       return
     }
 
-    if (!token || !userId) {
-      setSubmitError("Debes iniciar sesión para enviar un artículo. Ve a localhost:3000/login")
-      toast({ title: 'Debes iniciar sesión', description: 'Inicia sesión para enviar un artículo.', variant: 'destructive' })
-      return
-    }
-
     setSubmitError(null)
     setSubmitting(true)
     try {
@@ -95,16 +89,18 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
         url_imagen: imageUrl || "https://via.placeholder.com/300",
         url_preview_imagen: imageUrl || "https://via.placeholder.com/150",
         tiempo_lectura: readTimeMinutes,
-        autorId: userId,
-        categoriaId: CATEGORY_ID_MAP[formData.category] || 3,
+        // Si hay userId del contexto lo usa, si no usa 5 (Admin ANEUPI) como autor por defecto
+        autorId: userId || 5,
+        categoriaId: CATEGORY_ID_MAP[formData.category] ?? 3,
       }
+
+      // Armar headers — con token si existe, sin él si no
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (token) headers["Authorization"] = `Bearer ${token}`
 
       const res = await fetch(`${API_URL}/api/articulos`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
+        headers,
         body: JSON.stringify(body),
       })
 

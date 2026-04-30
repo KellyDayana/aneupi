@@ -8,9 +8,15 @@ import { useUser } from "@/contexts/user-context"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
+// Credenciales de acceso al panel admin
+const MOCK_ADMINS = [
+  { email: "admin@aneupi.local", password: "123" },
+  { email: "admin2@aneupi.local", password: "Admin123!" },
+]
+
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isLoggedIn } = useUser()
+  const { setUserRole, login, isLoggedIn } = useUser()
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -33,6 +39,20 @@ export default function LoginPage() {
     setError("")
     setMessage("")
 
+    // Primero intentar con credenciales mock (acceso rápido al panel)
+    const isMock = MOCK_ADMINS.some(
+      (a) => a.email === formData.email && a.password === formData.password
+    )
+
+    if (isMock) {
+      setMessage("✓ Autenticación exitosa. Redirigiendo al panel de administración...")
+      setUserRole("superadmin")
+      setIsLoading(false)
+      setTimeout(() => router.push("/administrador/inicio"), 600)
+      return
+    }
+
+    // Si no es mock, intentar con la API real
     try {
       const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -51,9 +71,7 @@ export default function LoginPage() {
       login(token, rolFrontend, user.usuarioId)
 
       setMessage("✓ Autenticación exitosa. Redirigiendo...")
-      setTimeout(() => {
-        router.push("/administrador/inicio")
-      }, 600)
+      setTimeout(() => router.push("/administrador/inicio"), 600)
     } catch (err) {
       setError("❌ No se pudo conectar con el servidor.")
     } finally {

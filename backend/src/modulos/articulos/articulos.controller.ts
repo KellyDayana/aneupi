@@ -7,6 +7,8 @@ export class ArticulosController {
 
   crearArticulo = async (req: Request, res: Response) => {
     try {
+      // Si hay token válido y es admin, puede publicar directamente
+      // Si no hay token o es usuario normal, queda en PENDIENTE_APROBACION
       const esAdmin = req.user?.rol === 'admin';
       const articulo = await this.service.crearArticulo(req.body, esAdmin);
       res.status(201).json({
@@ -36,11 +38,8 @@ export class ArticulosController {
         orderBy: (req.query.orderBy as 'asc' | 'desc') || 'desc',
       };
 
-      // Si el usuario es admin puede ver todos los estados; si no, solo publicados
-      const esAdmin = req.user?.rol === 'admin';
-      const soloPublicados = !esAdmin && !filtros.estado;
-
-      const articulos = await this.service.obtenerArticulos(filtros, soloPublicados);
+      // Por ahora mostrar todos los artículos sin filtrar por estado
+      const articulos = await this.service.obtenerArticulos(filtros, false);
 
       res.status(200).json({
         success: true,

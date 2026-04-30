@@ -1,9 +1,11 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Share2, Eye, Heart, MessageCircle, Calendar, User, ArrowRight, BookOpen } from 'lucide-react';
+import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Share2, Eye, Heart, MessageCircle, Calendar, User, ArrowRight, BookOpen, ClipboardList } from 'lucide-react';
 // IMPORTANTE: Asegúrate de tener el archivo ArticuloCompleto.tsx en la misma carpeta
 import ArticuloCompleto from './articuloCompleto'; 
+import { ArticulosRevisionPanel } from '@/components/articulos-revision-panel';
+import { useUser } from '@/contexts/user-context';
 
 // --- INTERFACES ---
 interface Article {
@@ -32,6 +34,10 @@ export default function ArticulosAdminPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [displayedArticle, setDisplayedArticle] = useState<Article | null>(null); 
     const [showAllTrending, setShowAllTrending] = useState(false);
+    // Pestañas
+    const [activeTab, setActiveTab] = useState<'lista' | 'revision'>('lista');
+    const [pendientesCount, setPendientesCount] = useState(0);
+    const { token } = useUser();
     // Estados para el Modal de Tendencias
     const [isTrendingModalOpen, setIsTrendingModalOpen] = useState(false);
     const [selectedTrending, setSelectedTrending] = useState<Trending | null>(null);
@@ -168,6 +174,43 @@ export default function ArticulosAdminPage() {
                             </button>
                         </div>
                     </div>
+
+                    {/* PESTAÑAS */}
+                    <div className="flex border-b border-gray-200">
+                        <button
+                            onClick={() => setActiveTab('lista')}
+                            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors ${
+                                activeTab === 'lista'
+                                    ? 'border-[#003952] text-[#003952]'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            Lista de Artículos
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('revision')}
+                            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+                                activeTab === 'revision'
+                                    ? 'border-[#003952] text-[#003952]'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            <ClipboardList size={16} />
+                            Revisión de Artículos
+                            {pendientesCount > 0 && (
+                                <span className="bg-yellow-400 text-yellow-900 text-xs px-2 py-0.5 rounded-full font-bold">
+                                    {pendientesCount}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* TAB: REVISIÓN */}
+                    {activeTab === 'revision' && <ArticulosRevisionPanel onCountChange={setPendientesCount} />}
+
+                    {/* TAB: LISTA */}
+                    {activeTab === 'lista' && (
+                    <>
 
                     {/* CUERPO POR CATEGORÍAS */}
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -401,6 +444,8 @@ export default function ArticulosAdminPage() {
                     </div>
                 </div>
             )}
+                    </> /* fin activeTab lista */
+                    )}
         </div>
     );
 }

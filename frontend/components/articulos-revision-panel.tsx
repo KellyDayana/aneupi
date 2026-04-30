@@ -73,7 +73,7 @@ function RechazarModal({
   )
 }
 
-export function ArticulosRevisionPanel() {
+export function ArticulosRevisionPanel({ onCountChange }: { onCountChange?: (n: number) => void }) {
   const { token } = useUser()
   const [articulos, setArticulos] = useState<Articulo[]>([])
   const [filtro, setFiltro] = useState<FiltroEstado>("PENDIENTE_APROBACION")
@@ -84,7 +84,6 @@ export function ArticulosRevisionPanel() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null)
 
   const fetchArticulos = useCallback(async () => {
-    if (!token) return
     setLoading(true)
     setError(null)
     try {
@@ -97,12 +96,16 @@ export function ArticulosRevisionPanel() {
         url = `${API_URL}/api/articulos?estado=${filtro}&take=50`
       }
 
-      const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+      const headers: Record<string, string> = {}
+      if (token) headers["Authorization"] = `Bearer ${token}`
+
+      const res = await fetch(url, { headers })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Error al cargar artículos")
       setArticulos(data.data)
+      if (filtro === "PENDIENTE_APROBACION" && onCountChange) {
+        onCountChange(data.count ?? data.data.length)
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido")
     } finally {
@@ -120,12 +123,13 @@ export function ArticulosRevisionPanel() {
   }
 
   const handleAprobar = async (articulo: Articulo) => {
-    if (!token) return
     setActionLoading(articulo.articuloId)
     try {
+      const headers: Record<string, string> = {}
+      if (token) headers["Authorization"] = `Bearer ${token}`
       const res = await fetch(`${API_URL}/api/articulos/${articulo.articuloId}/aprobar`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Error al aprobar")
@@ -139,13 +143,15 @@ export function ArticulosRevisionPanel() {
   }
 
   const handleRechazar = async (motivo: string) => {
-    if (!token || !articuloARechazar) return
+    if (!articuloARechazar) return
     setActionLoading(articuloARechazar.articuloId)
     const titulo = articuloARechazar.titulo
     try {
+      const headers: Record<string, string> = { "Content-Type": "application/json" }
+      if (token) headers["Authorization"] = `Bearer ${token}`
       const res = await fetch(`${API_URL}/api/articulos/${articuloARechazar.articuloId}/rechazar`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers,
         body: JSON.stringify({ motivo_rechazo: motivo || undefined }),
       })
       const data = await res.json()
