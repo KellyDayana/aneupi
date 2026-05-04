@@ -38,8 +38,12 @@ export class ArticulosController {
         orderBy: (req.query.orderBy as 'asc' | 'desc') || 'desc',
       };
 
-      // Por ahora mostrar todos los artículos sin filtrar por estado
-      const articulos = await this.service.obtenerArticulos(filtros, false);
+      // Vista pública: solo artículos PUBLICADOS
+      // Si se pasa ?estado=... en query, respetar ese filtro (para el panel admin)
+      const tieneFiltroPorEstado = !!req.query.estado;
+      const soloPublicados = !tieneFiltroPorEstado;
+
+      const articulos = await this.service.obtenerArticulos(filtros, soloPublicados);
 
       res.status(200).json({
         success: true,

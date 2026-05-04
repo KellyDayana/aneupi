@@ -11,21 +11,26 @@ import { useUser } from "@/contexts/user-context"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
 const CATEGORY_ID_MAP: Record<string, number> = {
-  "Tecnología": 3,
-  "Medio Ambiente": 3,
-  "Educación": 3,
-  "Gastronomía": 3,
-  "Negocios": 3,
-  "Arte y Cultura": 3,
+  "Tecnología": 5,
+  "Medio Ambiente": 6,
+  "Educación": 7,
+  "Gastronomía": 8,
+  "Negocios": 9,
+  "Arte y Cultura": 10,
+  "Ciencia": 11,
+  "Salud": 12,
+  "Deportes": 4,
+  "Opinión": 13,
 }
 
 interface AddArticleFormProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (article: any) => void
+  isAdmin?: boolean
 }
 
-export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProps) {
+export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp = false }: AddArticleFormProps) {
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -42,6 +47,9 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
   const [submitError, setSubmitError] = useState<string | null>(null)
   const { toast } = useToast()
   const { token, userId, userRole } = useUser()
+
+  // Si se pasa isAdmin como prop (panel admin), usar eso; si no, usar el rol del contexto
+  const esAdmin = isAdminProp || userRole === "superadmin"
 
   const MAX_IMAGE_SIZE = 1 * 1024 * 1024
 
@@ -82,16 +90,20 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
       const readTimeMinutes = parseInt(formData.readTime) || 5
       const imageUrl = formData.imageSource === "url" ? formData.imageUrl : ""
 
-      const body = {
+      const body: Record<string, any> = {
         titulo: formData.title,
         descripcion: formData.description,
         contenido: formData.description,
         url_imagen: imageUrl || "https://via.placeholder.com/300",
         url_preview_imagen: imageUrl || "https://via.placeholder.com/150",
         tiempo_lectura: readTimeMinutes,
-        // Si hay userId del contexto lo usa, si no usa 5 (Admin ANEUPI) como autor por defecto
         autorId: userId || 5,
         categoriaId: CATEGORY_ID_MAP[formData.category] ?? 3,
+      }
+
+      // Si es admin, publicar directamente
+      if (esAdmin) {
+        body.estado = "PUBLICADO"
       }
 
       // Armar headers — con token si existe, sin él si no
@@ -107,7 +119,6 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Error al enviar el artículo")
 
-      const esAdmin = userRole === "superadmin"
       setSubmitResult(esAdmin ? "published" : "pending")
 
       if (esAdmin && data.data) {
@@ -193,7 +204,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
           <BookOpen className="w-6 h-6 text-yellow-400" />
         </div>
 
-        {userRole !== "superadmin" && (
+        {userRole !== "superadmin" && !isAdminProp && (
           <div className="mx-6 mt-4 p-3 bg-blue-50 border border-blue-200 text-blue-700 rounded-lg text-sm">
             Tu artículo será enviado para revisión editorial antes de publicarse.
           </div>
@@ -272,6 +283,10 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
                 <option value="Gastronomía">Gastronomía</option>
                 <option value="Negocios">Negocios</option>
                 <option value="Arte y Cultura">Arte y Cultura</option>
+                <option value="Ciencia">Ciencia</option>
+                <option value="Salud">Salud</option>
+                <option value="Deportes">Deportes</option>
+                <option value="Opinión">Opinión</option>
               </select>
             </div>
             <div className="bg-white border-2 border-gray-200 rounded-lg p-4">
@@ -388,11 +403,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit }: AddArticleFormProp
               className="px-8 py-2 bg-[#0D3F50] text-white hover:bg-[#0A2D3A] rounded-lg font-semibold transition flex items-center gap-2 disabled:opacity-60"
             >
               <span>+</span>
-              {submitting
-                ? "Enviando..."
-                : userRole === "superadmin"
-                ? "Publicar Artículo"
-                : "Enviar para Revisión"}
+              {submitting ? "Enviando..." : esAdmin ? "Publicar Artículo" : "Enviar para Revisión"}
             </Button>
           </div>
         </form>

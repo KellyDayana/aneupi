@@ -39,9 +39,15 @@ export class ArticulosService {
     this.validarCamposObligatorios(data);
     this.validarTiempoLectura(data.tiempo_lectura);
 
-    // Si no es admin, forzar estado PENDIENTE_APROBACION
-    if (!esAdmin) {
+    // Si el body ya trae estado PUBLICADO, respetarlo (admin desde frontend)
+    // Si no es admin y no trae estado PUBLICADO, forzar PENDIENTE_APROBACION
+    if (!esAdmin && data.estado !== EstadoNoticia.PUBLICADO) {
       data.estado = EstadoNoticia.PENDIENTE_APROBACION;
+    }
+
+    // Si no viene ningún estado, asignar según rol
+    if (!data.estado) {
+      data.estado = esAdmin ? EstadoNoticia.PUBLICADO : EstadoNoticia.PENDIENTE_APROBACION;
     }
 
     return await this.repository.crear(data);

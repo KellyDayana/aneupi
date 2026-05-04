@@ -392,7 +392,7 @@ export default function ArticulosPage() {
 
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_URL}/api/articulos?take=50`, { // Ajusta el endpoint según tu backend
+        const response = await fetch(`${API_URL}/api/articulos?take=50&estado=PUBLICADO`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' }
         });
@@ -607,206 +607,92 @@ export default function ArticulosPage() {
         <div className="fixed top-0 left-0 w-full h-1 bg-[#003952] animate-pulse z-[60]" />
       )}
 
-      <main className="container mx-auto px-4 py-2">
-        {/* Header Section */}
-        <div className="mb-2">
-          <div className="mb-2 flex flex-col md:flex-row items-start md:items-center justify-between gap-2">
-            <div>
-              <h1 className="text-2xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-1">Artículos</h1>
-              <p className="text-gray-600 text-sm sm:text-sm md:text-base">
-                Lee y comparte artículos de opinión, análisis y reportajes en profundidad
-              </p>
-            </div>
-            <Button
-              onClick={() => setIsFormOpen(true)}
-              className="flex items-center gap-2 bg-[#003952] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#002a3a] transition-colors font-semibold text-sm sm:text-sm w-full md:w-auto justify-center md:justify-start"
-            >
-              <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-              Agregar artículo
-            </Button>
-          </div>
+      <main className="mx-auto max-w-full px-0 py-8 overflow-x-hidden">
+        {/* Grid principal igual que inicio: 4 columnas, contenido en 3, sidebar en 1 */}
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Columna principal */}
+          <div className="lg:col-span-3 pl-3">
 
-          <div className="mb-2">
-            <div className="flex items-center justify-between mb-2">
-              <button
-                onClick={() => setShowSearchOptions((s) => !s)}
-                aria-expanded={showSearchOptions}
-                className="flex items-center gap-2 bg-[#003952] text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-md hover:bg-[#002a3a] transition-colors font-semibold text-sm sm:text-sm"
+            {/* Header con título y botón agregar */}
+            <div className="mb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-2 px-1">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 mb-1">Artículos</h1>
+                <p className="text-gray-600 text-sm">Lee y comparte artículos de opinión, análisis y reportajes en profundidad</p>
+              </div>
+              <Button
+                onClick={() => setIsFormOpen(true)}
+                className="flex items-center gap-2 bg-[#003952] text-white px-4 py-2 rounded-md hover:bg-[#002a3a] transition-colors font-semibold text-sm"
               >
-                <Search className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
-                <span>Buscar</span>
-              </button>
+                <Plus className="w-4 h-4" />
+                Agregar artículo
+              </Button>
             </div>
-            {showSearchOptions && (
-              <div className="flex border-b border-gray-300 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+
+            {/* Buscador */}
+            <div className="mb-4 px-1">
+              <div className="flex items-center justify-between mb-2">
                 <button
-                  onClick={() => {
-                    setActiveExamTab("recent")
-                    setAuthorSearch("")
-                    setTitleSearch("")
-                  }}
-                  className={`px-2 sm:px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-xs sm:text-sm ${activeExamTab === "recent"
-                    ? "bg-[#003952] text-white border-[#003952]"
-                    : "bg-white text-[#003952] border-transparent hover:bg-gray-50"
-                    }`}
+                  onClick={() => setShowSearchOptions((s) => !s)}
+                  aria-expanded={showSearchOptions}
+                  className="flex items-center gap-2 bg-[#003952] text-white px-4 py-2 rounded-md hover:bg-[#002a3a] transition-colors font-semibold text-sm"
                 >
-                  Envíos recientes
+                  <Search className="w-4 h-4 text-white" />
+                  <span>Buscar</span>
                 </button>
-                <button
-                  onClick={() => {
-                    setActiveExamTab("date")
-                    setAuthorSearch("")
-                    setTitleSearch("")
-                  }}
-                  className={`px-2 sm:px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-xs sm:text-sm ${activeExamTab === "date"
-                    ? "bg-[#003952] text-white border-[#003952]"
-                    : "bg-white text-[#003952] border-transparent hover:bg-gray-50"
-                    }`}
-                >
-                  Por fecha
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveExamTab("author")
-                    setTitleSearch("")
-                  }}
-                  className={`px-2 sm:px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-xs sm:text-sm ${activeExamTab === "author"
-                    ? "bg-[#003952] text-white border-[#003952]"
-                    : "bg-white text-[#003952] border-transparent hover:bg-gray-50"
-                    }`}
-                >
-                  Por autor
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveExamTab("title")
-                    setAuthorSearch("")
-                  }}
-                  className={`px-2 sm:px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-xs sm:text-sm ${activeExamTab === "title"
-                    ? "bg-[#003952] text-white border-[#003952]"
-                    : "bg-white text-[#003952] border-transparent hover:bg-gray-50"
-                    }`}
-                >
-                  Por título
-                </button>
+              </div>
+              {showSearchOptions && (
+                <div className="flex border-b border-gray-300 overflow-x-auto">
+                  {[
+                    { key: "recent", label: "Envíos recientes" },
+                    { key: "date", label: "Por fecha" },
+                    { key: "author", label: "Por autor" },
+                    { key: "title", label: "Por título" },
+                  ].map(({ key, label }) => (
+                    <button key={key}
+                      onClick={() => { setActiveExamTab(key as any); setAuthorSearch(""); setTitleSearch("") }}
+                      className={`px-3 py-2 font-medium transition-colors border-b-2 whitespace-nowrap text-sm ${activeExamTab === key ? "bg-[#003952] text-white border-[#003952]" : "bg-white text-[#003952] border-transparent hover:bg-gray-50"}`}
+                    >{label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {activeExamTab === "date" && (
+              <div className="mb-4 bg-white p-4 rounded-lg border border-gray-300 mx-1">
+                <h3 className="text-base font-semibold text-gray-900 mb-4">Filtrar resultados por año o por mes:</h3>
+                <div className="flex flex-col sm:flex-row items-end gap-3">
+                  <select value={selectedYear} onChange={(e) => setSelectedYear(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#003952]">
+                    <option value="">(Elegir año)</option>
+                    {["2025","2024","2023","2022"].map(y => <option key={y} value={y}>{y}</option>)}
+                  </select>
+                  <select value={selectedMonth} onChange={(e) => setSelectedMonth(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#003952]">
+                    <option value="">(Elegir mes)</option>
+                    {["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"].map((m,i) => <option key={i+1} value={String(i+1)}>{m}</option>)}
+                  </select>
+                  <Button onClick={() => setCurrentPage(1)} className="bg-[#003952] text-white px-6 py-2 rounded-lg hover:bg-[#002a3a] font-semibold text-sm flex items-center gap-2">
+                    <BookOpen className="w-4 h-4" /> Examinar
+                  </Button>
+                </div>
               </div>
             )}
-          </div>
-
-          {activeExamTab === "date" && (
-            <div className="mb-4 bg-white p-4 sm:p-6 rounded-lg border border-gray-300">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
-                Filtrar resultados por año o por mes:
-              </h3>
-              <div className="flex flex-col sm:flex-row items-end gap-3 sm:gap-4">
-                <div className="flex-1 w-full">
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#003952]"
-                  >
-                    <option value="">(Elegir año)</option>
-                    <option value="2025">2025</option>
-                    <option value="2024">2024</option>
-                    <option value="2023">2023</option>
-                    <option value="2022">2022</option>
-                  </select>
+            {activeExamTab === "author" && (
+              <div className="mb-4 bg-white p-4 rounded-lg border border-gray-300 mx-1">
+                <h3 className="text-base font-semibold text-gray-900 mb-4">Buscar artículos por autor:</h3>
+                <div className="flex gap-3">
+                  <input type="text" placeholder="Ingrese el nombre del autor" value={authorSearch} onChange={(e) => setAuthorSearch(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#003952]" />
+                  <Button onClick={() => setCurrentPage(1)} className="bg-[#003952] text-white px-6 py-2 rounded-lg hover:bg-[#002a3a] font-semibold text-sm">Buscar</Button>
                 </div>
-                <div className="flex-1 w-full">
-                  <select
-                    value={selectedMonth}
-                    onChange={(e) => setSelectedMonth(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#003952]"
-                  >
-                    <option value="">(Elegir mes)</option>
-                    <option value="1">Enero</option>
-                    <option value="2">Febrero</option>
-                    <option value="3">Marzo</option>
-                    <option value="4">Abril</option>
-                    <option value="5">Mayo</option>
-                    <option value="6">Junio</option>
-                    <option value="7">Julio</option>
-                    <option value="8">Agosto</option>
-                    <option value="9">Septiembre</option>
-                    <option value="10">Octubre</option>
-                    <option value="11">Noviembre</option>
-                    <option value="12">Diciembre</option>
-                  </select>
-                </div>
-                <div className="flex-1 w-full sm:flex-[2]">
-                  <input
-                    type="text"
-                    placeholder="Resultados por fecha"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#003952]"
-                  />
-                </div>
-                <Button
-                  onClick={() => {
-                    setCurrentPage(1)
-                  }}
-                  className="w-full sm:w-auto bg-[#003952] text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-[#002a3a] transition-colors font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Examinar
-                </Button>
               </div>
-            </div>
-          )}
-
-          {activeExamTab === "author" && (
-            <div className="mb-4 bg-white p-4 sm:p-6 rounded-lg border border-gray-300">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Buscar artículos por autor:</h3>
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <div className="flex-1 w-full">
-                  <input
-                    type="text"
-                    placeholder="Ingrese el nombre del autor"
-                    value={authorSearch}
-                    onChange={(e) => setAuthorSearch(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#003952]"
-                  />
+            )}
+            {activeExamTab === "title" && (
+              <div className="mb-4 bg-white p-4 rounded-lg border border-gray-300 mx-1">
+                <h3 className="text-base font-semibold text-gray-900 mb-4">Buscar artículos por título:</h3>
+                <div className="flex gap-3">
+                  <input type="text" placeholder="Ingrese el título del artículo" value={titleSearch} onChange={(e) => setTitleSearch(e.target.value)} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-[#003952]" />
+                  <Button onClick={() => setCurrentPage(1)} className="bg-[#003952] text-white px-6 py-2 rounded-lg hover:bg-[#002a3a] font-semibold text-sm">Buscar</Button>
                 </div>
-                <Button
-                  onClick={() => setCurrentPage(1)}
-                  className="w-full sm:w-auto bg-[#003952] text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-[#002a3a] transition-colors font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Buscar
-                </Button>
               </div>
-            </div>
-          )}
-
-          {activeExamTab === "title" && (
-            <div className="mb-4 bg-white p-4 sm:p-6 rounded-lg border border-gray-300">
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">Buscar artículos por título:</h3>
-              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4">
-                <div className="flex-1 w-full">
-                  <input
-                    type="text"
-                    placeholder="Ingrese el título del artículo"
-                    value={titleSearch}
-                    onChange={(e) => setTitleSearch(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-lg text-gray-700 text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-[#003952]"
-                  />
-                </div>
-                <Button
-                  onClick={() => setCurrentPage(1)}
-                  className="w-full sm:w-auto bg-[#003952] text-white px-4 sm:px-6 py-2 rounded-lg hover:bg-[#002a3a] transition-colors font-semibold flex items-center justify-center gap-2 text-sm sm:text-base"
-                >
-                  <BookOpen className="w-4 h-4 sm:w-5 sm:h-5" />
-                  Buscar
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col lg:flex-row gap-6 sm:gap-8">
-          {/* Main Content - Articles grouped by category in carousels */}
-          <div className="flex-1 pr-0 lg:pr-6">
+            )}
             {displayedArticle ? (
               <div className="bg-white rounded-lg p-4 shadow-sm">
                 <button
@@ -849,11 +735,15 @@ export default function ArticulosPage() {
                                 className="basis-full sm:basis-1/2 md:basis-1/3 flex"
                               >
                                 <Card className="h-full flex flex-col overflow-hidden hover:shadow-xl transition-shadow cursor-pointer bg-white group border border-gray-500 hover:border-gray-800 rounded-lg">
-                                  <div className="relative h-24 sm:h-28 md:h-32 overflow-hidden rounded-t-lg">
+                                  <div className="relative h-36 overflow-hidden rounded-t-lg bg-[#003952]/10 flex-shrink-0">
                                     <img
                                       src={article.image || "/placeholder.svg"}
                                       alt={article.title}
                                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 block rounded-t-lg"
+                                      onError={(e) => {
+                                        const img = e.target as HTMLImageElement
+                                        img.src = `https://placehold.co/400x200/003952/FDB913?text=${encodeURIComponent(article.category || 'Artículo')}`
+                                      }}
                                     />
                                     <div className="absolute top-2 sm:top-3 left-2 sm:left-3 bg-[#DC2626] text-white px-2 sm:px-3 py-1 text-xs font-bold uppercase rounded">
                                       {article.category}
@@ -931,64 +821,36 @@ export default function ArticulosPage() {
             )}
           </div>
 
-          {/* Sidebar */}
-          <aside className="w-full sm:w-full lg:w-72 flex-shrink-0">
-            <div className="lg:sticky lg:top-8">
-              <div className="mb-3">
-                <a
-                  href="https://aneupi.com/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-full bg-[#003952] text-white px-3 py-2 rounded-md hover:bg-[#002a3a] font-semibold text-sm"
-                >
-                  Editorial ANEUPI
-                </a>
-              </div>
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
-                <div className="px-4 py-3">
-                  <h2 className="text-lg sm:text-xl font-bold text-gray-900">¿Qué esta pasando?</h2>
-                </div>
-
-                <ul className="max-h-80 sm:max-h-[calc(100vh-200px)] overflow-y-auto divide-y divide-gray-100">
-                  {sidebarItems.map((item) => (
-                    <li key={item.id} className="px-4 py-3 flex items-start justify-between gap-3">
-                      <div className="flex-1">
-                        <p className="text-xs text-gray-400 mb-1">{item.subtitle}</p>
-                        <a
-                          href={item.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="block font-semibold text-gray-900 hover:underline leading-tight"
-                        >
-                          {item.title}
-                        </a>
-                        <p className="text-xs text-gray-400 mt-1">{item.posts}</p>
-                      </div>
-
-                      <button
-                        aria-label="Compartir"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleShare({ title: item.title, link: item.link })
-                        }}
-                        className="text-gray-400 hover:text-gray-600 ml-3 self-start"
-                      >
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <circle cx="12" cy="5" r="1.5" />
-                          <circle cx="12" cy="12" r="1.5" />
-                          <circle cx="12" cy="19" r="1.5" />
-                        </svg>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="px-4 py-3">
-                  <a href="#" className="text-sm text-[#003952]">Show more</a>
+          {/* Sidebar derecho — igual que inicio */}
+          <div className="lg:col-span-1">
+            <div className="space-y-6">
+              {/* Editorial ANEUPI */}
+              <div className="bg-white rounded-lg shadow-lg p-4 news-border">
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Editorial ANEUPI</h3>
+                <p className="text-sm text-gray-500 mb-3">¿Qué esta pasando?</p>
+                {sidebarItems.map((item) => (
+                  <div key={item.id} className="mt-3 p-3 rounded-lg bg-gradient-to-r from-sky-50 to-white flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <p className="text-xs text-gray-400 mb-0.5">{item.subtitle}</p>
+                      <a href={item.link} target="_blank" rel="noopener noreferrer"
+                        className="block font-semibold text-sm text-gray-900 hover:text-[#003952] hover:underline leading-tight">
+                        {item.title}
+                      </a>
+                      <p className="text-xs text-gray-400 mt-0.5">{item.posts}</p>
+                    </div>
+                    <a href={item.link} target="_blank" rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 bg-[#003952] text-white px-3 py-2 rounded-md hover:bg-[#002a3a] text-sm font-semibold flex-shrink-0">
+                      Visitar
+                    </a>
+                  </div>
+                ))}
+                <div className="mt-3 pt-2 border-t border-gray-100">
+                  <a href="#" className="text-sm text-[#003952] hover:underline">Show more</a>
                 </div>
               </div>
             </div>
-          </aside>
+          </div>
+
         </div>
 
         <section className="mt-2 sm:mt-4 mb-2 sm:mb-3">
