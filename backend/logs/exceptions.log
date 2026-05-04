@@ -3200,3 +3200,13 @@ Error: Cannot find module 'D:\aneupi-tv-backend\node_modules\@prisma\client\runt
     at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1062:22)
     at Function._load (node:internal/modules/cjs/loader:1211:37)
     at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+2026-05-04 09:21:35 error: 	uncaughtException: listen EADDRINUSE: address already in use :::4000
+Error: listen EADDRINUSE: address already in use :::4000
+    at Server.setupListenHandle [as _listen2] (node:net:2008:16)
+    at listenInCluster (node:net:2065:12)
+    at Server.listen (node:net:2170:7)
+    at C:\ANEUPI_TV\backend\src\index.ts:99:14
+    at step (C:\ANEUPI_TV\backend\src\index.ts:66:23)
+    at Object.next (C:\ANEUPI_TV\backend\src\index.ts:47:53)
+    at fulfilled (C:\ANEUPI_TV\backend\src\index.ts:38:58)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)

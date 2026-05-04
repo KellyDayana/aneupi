@@ -20,9 +20,7 @@ export class ArticulosRepository {
         url_preview_imagen: data.url_preview_imagen,
         tiempo_lectura: data.tiempo_lectura,
         estado: data.estado,
-
-        // --- CORRECCIÓN CLAVE AQUÍ ---
-        // En lugar de pasar los IDs directamente, conectamos con los registros existentes.
+        nombre_autor: data.nombre_autor ?? null,
         autor: {
           connect: {
             usuarioId: data.autorId

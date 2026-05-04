@@ -69,6 +69,7 @@ model Articulo {
   tiempo_lectura     Int
   estado             EstadoNoticia @default(PENDIENTE_APROBACION)
   motivo_rechazo     String?
+  nombre_autor       String?
   vistas             Int      @default(0)
   fechaPublicacion   DateTime @default(now()) @map("fecha_publicacion")
   autorId            Int      @map("autor_id")

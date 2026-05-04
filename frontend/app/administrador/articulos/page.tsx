@@ -37,7 +37,7 @@ function articleFromApi(item: any): Article {
         title: item.titulo,
         description: item.descripcion,
         category: item.categoria?.nombre || 'General',
-        author: item.autor?.nombre_completo || 'Autor',
+        author: item.nombre_autor || item.autor?.nombre_completo || 'Autor',
         date: new Date(item.fechaPublicacion).toLocaleDateString('es-ES'),
         views: item.vistas || 0,
         likes: item.reacciones?.total || 0,

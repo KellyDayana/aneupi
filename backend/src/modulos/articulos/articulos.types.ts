@@ -10,9 +10,10 @@ export interface CrearArticuloDTO {
   url_imagen: string;
   url_preview_imagen: string;
   tiempo_lectura: number;
-  autorId: number;       // DEBE SER camelCase
-  categoriaId: number;   // DEBE SER camelCase
+  autorId: number;
+  categoriaId: number;
   estado?: EstadoArticulo;
+  nombre_autor?: string;
 }
 
 export interface ActualizarArticuloDTO {

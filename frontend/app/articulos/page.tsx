@@ -405,7 +405,7 @@ export default function ArticulosPage() {
                   id: a.articuloId,
                   title: a.titulo,
                   excerpt: a.descripcion,
-                  author: a.autor?.nombre_completo || 'Autor',
+                  author: a.nombre_autor || a.autor?.nombre_completo || 'Autor',
                   date: new Date(a.fechaPublicacion).toLocaleDateString('es-ES'),
                   readTime: `${a.tiempo_lectura} min`,
                   views: a.vistas || 0,

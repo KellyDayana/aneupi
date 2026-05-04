@@ -99,6 +99,8 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
         tiempo_lectura: readTimeMinutes,
         autorId: userId || 5,
         categoriaId: CATEGORY_ID_MAP[formData.category] ?? 3,
+        // Guardar el nombre del autor tal como lo escribió el usuario
+        nombre_autor: formData.author || undefined,
       }
 
       // Si es admin, publicar directamente

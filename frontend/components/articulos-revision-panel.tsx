@@ -12,6 +12,7 @@ interface Articulo {
   descripcion: string
   estado: string
   motivo_rechazo?: string | null
+  nombre_autor?: string | null
   fechaPublicacion: string
   tiempo_lectura: number
   autor: { usuarioId: number; nombre_completo: string; email: string }
@@ -259,7 +260,7 @@ export function ArticulosRevisionPanel({ onCountChange }: { onCountChange?: (n: 
                     )}
                   </td>
                   <td className="px-4 py-4 hidden md:table-cell">
-                    <p className="text-gray-700">{articulo.autor?.nombre_completo}</p>
+                    <p className="text-gray-700">{articulo.nombre_autor || articulo.autor?.nombre_completo}</p>
                     <p className="text-xs text-gray-400">{articulo.autor?.email}</p>
                   </td>
                   <td className="px-4 py-4 hidden lg:table-cell text-gray-600">
