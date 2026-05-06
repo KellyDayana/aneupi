@@ -32,6 +32,8 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel"
 import ChatBot from "@/app/administrador/asistente-virtual/chatBot";
+import { ArticuloReaccion } from "@/components/articulo-reaccion"
+import { ArticuloComentarios } from "@/components/articulo-comentarios"
 
 const intents = [
   { id: 1, label: "Saludo", name: "saludo", keywords: "hola, buenas", active: true, response: "Hola, ¿en qué puedo ayudar?" }
@@ -719,6 +721,19 @@ export default function ArticulosPage() {
                     <p>{displayedArticle.excerpt}</p>
                   </div>
                 </article>
+
+                {/* Reacción ❤️ */}
+                <div className="mt-4 flex items-center gap-3">
+                  <ArticuloReaccion
+                    articuloId={displayedArticle.id}
+                    initialCount={displayedArticle.likes}
+                  />
+                  <span className="text-sm text-gray-500">Me encanta</span>
+                </div>
+
+                {/* Comentarios */}
+                <ArticuloComentarios articuloId={displayedArticle.id} />
+
               </div>
             ) : (
               <div className="space-y-8">
@@ -786,10 +801,10 @@ export default function ArticulosPage() {
                                           <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
                                           {article.views}
                                         </span>
-                                        <span className="flex items-center gap-1">
-                                          <Heart className="w-3 h-3 sm:w-4 sm:h-4" />
-                                          {article.likes}
-                                        </span>
+                                        <ArticuloReaccion
+                                          articuloId={article.id}
+                                          initialCount={article.likes}
+                                        />
                                         <span className="flex items-center gap-1">
                                           <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                           {article.comments}

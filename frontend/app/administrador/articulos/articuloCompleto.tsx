@@ -1,11 +1,33 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ChevronLeft, User, Calendar, BookOpen, MessageCircle, 
-  Send, Trash2, Star, Pin, EyeOff, Eye, CheckCircle, Reply,
+  Send, Trash2, Star, Pin, EyeOff, CheckCircle, Reply,
   ChevronDown, ChevronUp
 } from 'lucide-react';
+import { ArticuloReaccion } from '@/components/articulo-reaccion';
+
+const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+
+interface Respuesta {
+  id: number;
+  autor: string;
+  texto: string;
+  fecha: string;
+  isAdmin?: boolean;
+}
+
+interface Comentario {
+  id: number;
+  autor: string;
+  texto: string;
+  fecha: string;
+  fijado: boolean;
+  destacado: boolean;
+  oculto: boolean;
+  respuestas: Respuesta[];
+}
 
 interface ArticuloCompletoProps {
     articulo: any;
@@ -13,80 +35,88 @@ interface ArticuloCompletoProps {
 }
 
 export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoProps) {
-    // --- ESTADOS DE COMENTARIOS ---
-    const [comentarios, setComentarios] = useState([
-        { 
-            id: 1, autor: "Lector Entusiasta", texto: "¡Excelente análisis! Muy informativo.", 
-            fecha: "21/04/2026", fijado: false, destacado: false, oculto: false,
-            respuestas: [
-                { id: 101, autor: "ANEUPI Noticias", texto: "Muchas gracias por tu comentario.", fecha: "29/04/2026", isAdmin: true }
-            ]
-        },
-        { 
-            id: 2, autor: "Crítico Web", texto: "Faltan más fuentes técnicas en este reporte.", 
-            fecha: "22/04/2026", fijado: false, destacado: false, oculto: false,
-            respuestas: [] 
-        },
-        { id: 3, autor: "Usuario Demo 1", texto: "Gran aporte a la comunidad.", fecha: "23/04/2026", fijado: false, destacado: false, oculto: false, respuestas: [] },
-        { id: 4, autor: "Usuario Demo 2", texto: "Me gustaría ver más sobre este tema.", fecha: "24/04/2026", fijado: false, destacado: false, oculto: false, respuestas: [] }
-    ]);
-    
+    const [comentarios, setComentarios] = useState<Comentario[]>([]);
     const [nuevoComentario, setNuevoComentario] = useState("");
     const [replyTo, setReplyTo] = useState<number | null>(null);
     const [textoRespuesta, setTextoRespuesta] = useState("");
     const [isLoading, setIsLoading] = useState(false);
-    const [showAllComments, setShowAllComent] = useState(false); // Control de expansión[cite: 1]
+    const [showAllComments, setShowAllComent] = useState(false);
 
-    /* ==========================================================================
-       LÓGICA PARA EL EQUIPO DE BACKEND (DESCOMENTAR PARA INTEGRAR)
-       ==========================================================================
-    
-    // 1. CARGA INICIAL DE COMENTARIOS DESDE LA DB
-    useEffect(() => {
-        const fetchComentarios = async () => {
-            try {
-                setIsLoading(true);
-                const response = await fetch(`/api/articulos/${articulo.id}/comentarios`);
-                const data = await response.json();
-                setComentarios(data);
-            } catch (error) {
-                console.error("Error al cargar comentarios:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        if (articulo?.id) fetchComentarios();
-    }, [articulo.id]);
-
-    // 2. FUNCIÓN PARA ELIMINAR EN DB
-    const eliminarComentarioDB = async (id: number) => {
+    // Cargar comentarios reales desde la API
+    const fetchComentarios = useCallback(async () => {
+        if (!articulo?.id) return;
+        setIsLoading(true);
         try {
-            const res = await fetch(`/api/comentarios/${id}`, { method: 'DELETE' });
-            if (res.ok) setComentarios(comentarios.filter(c => c.id !== id));
-        } catch (error) { console.error(error); }
+            const res = await fetch(`${API}/api/articulos/${articulo.id}/comentarios`);
+            const data = await res.json();
+            if (data.success && data.data) {
+                setComentarios(data.data.map((c: any) => ({
+                    id: c.comentarioId,
+                    autor: c.usuario?.nombre_completo || 'Usuario',
+                    texto: c.mensaje,
+                    fecha: new Date(c.fecha_hora).toLocaleDateString('es-ES'),
+                    fijado: false,
+                    destacado: false,
+                    oculto: false,
+                    respuestas: (c.respuestas || []).map((r: any) => ({
+                        id: r.comentarioId,
+                        autor: r.usuario?.nombre_completo || 'Usuario',
+                        texto: r.mensaje,
+                        fecha: new Date(r.fecha_hora).toLocaleDateString('es-ES'),
+                        isAdmin: false,
+                    }))
+                })));
+            }
+        } catch (e) {
+            console.error('Error cargando comentarios:', e);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [articulo?.id]);
+
+    useEffect(() => { fetchComentarios(); }, [fetchComentarios]);
+
+    // Eliminar comentario en la API
+    const eliminarComentario = async (id: number) => {
+        if (!confirm("¿Seguro que deseas eliminar este comentario?")) return;
+        try {
+            await fetch(`${API}/api/articulos/${articulo.id}/comentarios/${id}`, { method: 'DELETE' });
+            fetchComentarios();
+        } catch (e) {
+            console.error(e);
+        }
     };
 
-    // 3. FUNCIÓN PARA ENVIAR RESPUESTA DEL ADMIN A DB
-    const enviarRespuestaDB = async (parentId: number) => {
+    // Agregar comentario nuevo
+    const agregarComentario = async () => {
+        if (!nuevoComentario.trim()) return;
         try {
-            const res = await fetch(`/api/comentarios/${parentId}/respuestas`, {
+            await fetch(`${API}/api/articulos/${articulo.id}/comentarios`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ texto: textoRespuesta, isAdmin: true })
+                body: JSON.stringify({ mensaje: nuevoComentario, usuarioId: 5, articuloId: articulo.id }),
             });
-            const nuevaRespuesta = await res.json();
-            setComentarios(comentarios.map(c => 
-                c.id === parentId ? { ...c, respuestas: [...c.respuestas, nuevaRespuesta] } : c
-            ));
-        } catch (error) { console.error(error); }
+            setNuevoComentario("");
+            fetchComentarios();
+        } catch (e) {
+            console.error(e);
+        }
     };
-    
-    ========================================================================== */
 
-    // --- FUNCIONES ADMINISTRATIVAS FRONT-END ---
-    const eliminarComentario = (id: number) => {
-        if (confirm("¿Seguro que deseas eliminar este comentario?")) {
-            setComentarios(comentarios.filter(c => c.id !== id));
+    // Enviar respuesta
+    const enviarRespuesta = async (parentId: number) => {
+        if (!textoRespuesta.trim()) return;
+        try {
+            await fetch(`${API}/api/articulos/${articulo.id}/comentarios`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mensaje: textoRespuesta, usuarioId: 5, articuloId: articulo.id, respuestaAId: parentId }),
+            });
+            setTextoRespuesta("");
+            setReplyTo(null);
+            fetchComentarios();
+        } catch (e) {
+            console.error(e);
         }
     };
 
@@ -104,44 +134,8 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
         setComentarios(comentarios.map(c => c.id === id ? { ...c, oculto: !c.oculto } : c));
     };
 
-    const agregarComentario = () => {
-        if (!nuevoComentario.trim()) return;
-        const comment = {
-            id: Date.now(),
-            autor: "ANEUPI Noticias",
-            texto: nuevoComentario,
-            fecha: new Date().toLocaleDateString(),
-            fijado: false, destacado: false, oculto: false,
-            respuestas: []
-        };
-        setComentarios([comment, ...comentarios]);
-        setNuevoComentario("");
-    };
-
-    const enviarRespuesta = (parentId: number) => {
-        if (!textoRespuesta.trim()) return;
-        setComentarios(comentarios.map(c => {
-            if (c.id === parentId) {
-                return {
-                    ...c,
-                    respuestas: [...c.respuestas, {
-                        id: Date.now(),
-                        autor: "ANEUPI Noticias",
-                        texto: textoRespuesta,
-                        fecha: new Date().toLocaleDateString(),
-                        isAdmin: true
-                    }]
-                };
-            }
-            return c;
-        }));
-        setTextoRespuesta("");
-        setReplyTo(null);
-    };
-
-    // --- LÓGICA DE VISIBILIDAD ---
     const comentariosOrdenados = [...comentarios].sort((a, b) => (a.fijado === b.fijado ? 0 : a.fijado ? -1 : 1));
-    const comentariosVisibles = showAllComments ? comentariosOrdenados : comentariosOrdenados.slice(0, 2); // Muestra solo 2 inicialmente[cite: 1]
+    const comentariosVisibles = showAllComments ? comentariosOrdenados : comentariosOrdenados.slice(0, 2);
 
     return (
         <div className="bg-white rounded-3xl shadow-sm overflow-hidden animate-in fade-in duration-500 pb-20">
@@ -170,6 +164,7 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
                     <span className="flex items-center gap-2 font-medium"><User size={18} className="text-gray-300" /> {articulo.author}</span>
                     <span className="flex items-center gap-2 font-medium"><Calendar size={18} className="text-gray-300" /> {articulo.date}</span>
                     <span className="flex items-center gap-2 font-medium"><BookOpen size={18} className="text-gray-300" /> {articulo.views} Vistas</span>
+                    <ArticuloReaccion articuloId={articulo.id} initialCount={articulo.likes || 0} />
                 </div>
 
                 {articulo.imageUrl && (
