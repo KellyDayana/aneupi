@@ -162,7 +162,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
   // Pantalla de resultado tras envío
   if (submitResult !== "idle") {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <Card className="w-full max-w-md bg-white rounded-lg shadow-2xl p-8 text-center">
           <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
             submitResult === "pending" ? "bg-blue-100" : "bg-green-100"
@@ -191,7 +191,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto bg-white rounded-lg shadow-2xl">
         <div className="bg-[#0D3F50] px-6 py-5 flex items-center justify-between rounded-t-lg">
           <h1 className="text-2xl font-bold text-white flex-1 text-center">Agregar Nuevo Artículo</h1>
