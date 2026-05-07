@@ -164,6 +164,16 @@ export class ArticulosService {
     return await this.repository.obtenerPendientes();
   }
 
+  async obtenerArticulosEliminados() {
+    return await this.repository.obtenerEliminados();
+  }
+
+  async restaurarArticulo(id: number) {
+    const articulo = await this.repository.obtenerPorId(id);
+    if (!articulo) throw new Error(`Artículo con ID ${id} no encontrado`);
+    return await this.repository.restaurar(id);
+  }
+
   async actualizarTiempoLectura(id: number, data: ActualizarTiempoLecturaDTO) {
     const articuloExistente = await this.repository.obtenerPorId(id);
 

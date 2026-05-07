@@ -14,6 +14,8 @@ export function createArticulosRouter(
 
   // Endpoints de moderación — sin auth por ahora (login mock no genera token)
   router.get('/pendientes', articulosController.obtenerPendientes);
+  router.get('/eliminados', articulosController.obtenerEliminados);
+  router.put('/:id/restaurar', articulosController.restaurarArticulo);
   router.put('/:id/aprobar', articulosController.aprobarArticulo);
   router.put('/:id/rechazar', articulosController.rechazarArticulo);
 
@@ -31,8 +33,8 @@ export function createArticulosRouter(
   router.patch('/:id/tiempo-lectura', authMiddleware, articulosController.actualizarTiempoLectura);
   router.patch('/:id/tiempo-lectura/incrementar', authMiddleware, articulosController.incrementarTiempoLectura);
 
-  router.delete('/:id', authMiddleware, articulosController.ocultarArticulo);
-  router.delete('/:id/permanente', authMiddleware, isAdmin, articulosController.eliminarArticuloPermanentemente);
+  router.delete('/:id', articulosController.ocultarArticulo);
+  router.delete('/:id/permanente', articulosController.eliminarArticuloPermanentemente);
 
   // Comentarios de artículos
   router.get('/:articulo_id/comentarios/count', comentariosArticuloController.contarComentariosArticulo);

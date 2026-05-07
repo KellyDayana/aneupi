@@ -5,6 +5,7 @@ import { Search, Plus, Edit, Trash2, ChevronLeft, ChevronRight, Eye, Heart, Mess
 import ArticuloCompleto from './articuloCompleto'; 
 import { ArticulosRevisionPanel } from '@/components/articulos-revision-panel';
 import { AddArticleForm } from '@/components/add-article-form';
+import { ArticulosPapelera } from '@/components/articulos-papelera';
 import { useUser } from '@/contexts/user-context';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
@@ -54,7 +55,7 @@ export default function ArticulosAdminPage() {
     const [displayedArticle, setDisplayedArticle] = useState<Article | null>(null); 
     const [showAllTrending, setShowAllTrending] = useState(false);
     // Pestañas
-    const [activeTab, setActiveTab] = useState<'lista' | 'revision'>('lista');
+    const [activeTab, setActiveTab] = useState<'lista' | 'revision' | 'papelera'>('lista');
     const [pendientesCount, setPendientesCount] = useState(0);
     const { token } = useUser();
     // Modal de agregar artículo — usa AddArticleForm
@@ -67,10 +68,18 @@ export default function ArticulosAdminPage() {
     const fetchArticulos = useCallback(async () => {
         setLoadingArticles(true);
         try {
-            const res = await fetch(`${API}/api/articulos?take=100`);
+            // Excluir artículos OCULTO (en papelera) de la lista principal
+            const res = await fetch(`${API}/api/articulos?take=100&estado=PUBLICADO`);
             const data = await res.json();
             if (data?.data?.length) {
                 setArticles(data.data.map(articleFromApi));
+            } else {
+                // Si no hay publicados, intentar con todos excepto ocultos
+                const res2 = await fetch(`${API}/api/articulos?take=100`);
+                const data2 = await res2.json();
+                if (data2?.data?.length) {
+                    setArticles(data2.data.filter((a: any) => a.estado !== 'OCULTO').map(articleFromApi));
+                }
             }
         } catch (e) {
             console.error('Error cargando artículos:', e);
@@ -99,14 +108,14 @@ export default function ArticulosAdminPage() {
     };
 
     const deleteArticle = async (id: number) => {
-        if (!confirm('¿Eliminar este artículo?')) return;
+        if (!confirm('¿Mover este artículo a la papelera? Tendrás 30 días para eliminarlo permanentemente.')) return;
         try {
             const headers: Record<string, string> = {};
             if (token) headers['Authorization'] = `Bearer ${token}`;
             await fetch(`${API}/api/articulos/${id}`, { method: 'DELETE', headers });
             fetchArticulos();
         } catch (e) {
-            console.error('Error eliminando artículo:', e);
+            console.error('Error moviendo artículo a papelera:', e);
         }
     };
 
@@ -170,10 +179,23 @@ export default function ArticulosAdminPage() {
                                 </span>
                             )}
                         </button>
+                        <button
+                            onClick={() => setActiveTab('papelera')}
+                            className={`px-5 py-2.5 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${
+                                activeTab === 'papelera'
+                                    ? 'border-red-500 text-red-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
+                            }`}
+                        >
+                            🗑️ Papelera
+                        </button>
                     </div>
 
                     {/* TAB: REVISIÓN */}
                     {activeTab === 'revision' && <ArticulosRevisionPanel onCountChange={setPendientesCount} />}
+
+                    {/* TAB: PAPELERA */}
+                    {activeTab === 'papelera' && <ArticulosPapelera />}
 
                     {/* TAB: LISTA */}
                     {activeTab === 'lista' && (

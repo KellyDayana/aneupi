@@ -202,16 +202,28 @@ export class ArticulosController {
   obtenerPendientes = async (req: Request, res: Response) => {
     try {
       const articulos = await this.service.obtenerArticulosPendientes();
-      res.status(200).json({
-        success: true,
-        data: articulos,
-        count: articulos.length,
-      });
+      res.status(200).json({ success: true, data: articulos, count: articulos.length });
     } catch (error) {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : 'Error al obtener artículos pendientes',
-      });
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Error al obtener artículos pendientes' });
+    }
+  };
+
+  obtenerEliminados = async (req: Request, res: Response) => {
+    try {
+      const articulos = await this.service.obtenerArticulosEliminados();
+      res.status(200).json({ success: true, data: articulos, count: articulos.length });
+    } catch (error) {
+      res.status(500).json({ success: false, error: error instanceof Error ? error.message : 'Error al obtener artículos eliminados' });
+    }
+  };
+
+  restaurarArticulo = async (req: Request, res: Response) => {
+    try {
+      const id = Number(req.params.id);
+      const articulo = await this.service.restaurarArticulo(id);
+      res.status(200).json({ success: true, data: articulo, message: 'Artículo restaurado exitosamente' });
+    } catch (error) {
+      res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'Error al restaurar el artículo' });
     }
   };
 

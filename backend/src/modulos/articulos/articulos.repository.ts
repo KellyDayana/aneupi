@@ -126,16 +126,13 @@ export class ArticulosRepository {
 
   async ocultarArticulo(id: number) {
     return this.prisma.articulo.update({
-      where: { articuloId: id }, // Corregido
-      data: { estado: EstadoNoticia.OCULTO },
+      where: { articuloId: id },
+      data: {
+        estado: EstadoNoticia.OCULTO,
+        fechaEliminacion: new Date(),
+      },
       include: {
-        autor: {
-          select: {
-            usuarioId: true, // Corregido
-            nombre_completo: true,
-            email: true,
-          },
-        },
+        autor: { select: { usuarioId: true, nombre_completo: true, email: true } },
         categoria: true,
       },
     });
@@ -232,6 +229,36 @@ export class ArticulosRepository {
         categoria: true,
       },
       orderBy: { fechaPublicacion: 'asc' },
+    });
+  }
+
+  async obtenerEliminados() {
+    const hace30dias = new Date();
+    hace30dias.setDate(hace30dias.getDate() - 30);
+    return this.prisma.articulo.findMany({
+      where: {
+        estado: EstadoNoticia.OCULTO,
+        fechaEliminacion: { gte: hace30dias },
+      },
+      include: {
+        autor: { select: { usuarioId: true, nombre_completo: true, email: true } },
+        categoria: true,
+      },
+      orderBy: { fechaEliminacion: 'desc' },
+    });
+  }
+
+  async restaurar(id: number) {
+    return this.prisma.articulo.update({
+      where: { articuloId: id },
+      data: {
+        estado: EstadoNoticia.PUBLICADO,
+        fechaEliminacion: null,
+      },
+      include: {
+        autor: { select: { usuarioId: true, nombre_completo: true, email: true } },
+        categoria: true,
+      },
     });
   }
 }
