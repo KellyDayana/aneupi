@@ -373,6 +373,7 @@ export default function ArticulosPage() {
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<any>(null)
   const [displayedArticle, setDisplayedArticle] = useState<any>(null)
+  const [vistasArticulo, setVistasArticulo] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearchOptions, setShowSearchOptions] = useState(false)
@@ -710,6 +711,7 @@ export default function ArticulosPage() {
                     <span className="flex items-center gap-1"><User className="w-4 h-4" />{displayedArticle.author}</span>
                     <span className="flex items-center gap-1"><Calendar className="w-4 h-4" />{displayedArticle.date}</span>
                     <span className="flex items-center gap-1"><BookOpen className="w-4 h-4" />{displayedArticle.readTime}</span>
+                    <span className="flex items-center gap-1"><Eye className="w-4 h-4"/>{vistasArticulo} vistas</span>
                   </div>
 
                   {displayedArticle.image && (
@@ -811,7 +813,14 @@ export default function ArticulosPage() {
                                         </span>
                                       </div>
                                       <button
-                                        onClick={() => setDisplayedArticle(article)}
+                                        onClick={() => {
+                                          setDisplayedArticle(article);
+                                          try {
+                                            const res = await fetch (`${API_URL}/api/articulos/${article.id}`);
+                                            const data = await res.json();
+                                            if (data.success)setVistasArticulo (data.data,vistas); 
+                                          }catch(e) {}
+                                        }}
                                         className="inline-flex items-center gap-2 bg-[#003952] text-white px-3 py-1 rounded-lg hover:bg-[#002a3a] transition-colors font-medium text-xs w-auto"
                                       >
                                         Leer más <ArrowRight className="w-3 h-3" />

@@ -41,6 +41,8 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
     const [textoRespuesta, setTextoRespuesta] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [showAllComments, setShowAllComent] = useState(false);
+    const [vistas, setVistas] = useState<number>(articulo.views || 0);
+
 
     // Cargar comentarios reales desde la API
     const fetchComentarios = useCallback(async () => {
@@ -74,7 +76,18 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
         }
     }, [articulo?.id]);
 
-    useEffect(() => { fetchComentarios(); }, [fetchComentarios]);
+    useEffect(() => {
+        fetchComentarios();
+        // Obtener vistas actualizadas 
+        if (articulo?.id) {
+            fetch(`${API}/api/articulos/${articulo.id}`)
+                .then(r => r.json())
+                .then(data => { if (data.success) setVistas(data.data.vistas); })
+                .catch(() => {});
+        }
+    }, [fetchComentarios, articulo?.id]);
+
+
 
     // Eliminar comentario en la API
     const eliminarComentario = async (id: number) => {
@@ -163,7 +176,7 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
                 <div className="flex flex-wrap items-center gap-6 text-gray-400 text-sm mb-8">
                     <span className="flex items-center gap-2 font-medium"><User size={18} className="text-gray-300" /> {articulo.author}</span>
                     <span className="flex items-center gap-2 font-medium"><Calendar size={18} className="text-gray-300" /> {articulo.date}</span>
-                    <span className="flex items-center gap-2 font-medium"><BookOpen size={18} className="text-gray-300" /> {articulo.views} Vistas</span>
+                    <span className="flex items-center gap-2 font-medium"><BookOpen size={18} className="text-gray-300" /> {vistas} Vistas</span>
                     <ArticuloReaccion articuloId={articulo.id} initialCount={articulo.likes || 0} />
                 </div>
 
