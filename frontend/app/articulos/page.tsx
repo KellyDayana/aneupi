@@ -813,12 +813,12 @@ export default function ArticulosPage() {
                                         </span>
                                       </div>
                                       <button
-                                        onClick={() => {
+                                        onClick={async() => {
                                           setDisplayedArticle(article);
                                           try {
                                             const res = await fetch (`${API_URL}/api/articulos/${article.id}`);
                                             const data = await res.json();
-                                            if (data.success)setVistasArticulo (data.data,vistas); 
+                                            if (data.success)setVistasArticulo (data.data.vistas); 
                                           }catch(e) {}
                                         }}
                                         className="inline-flex items-center gap-2 bg-[#003952] text-white px-3 py-1 rounded-lg hover:bg-[#002a3a] transition-colors font-medium text-xs w-auto"
