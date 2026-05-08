@@ -27,7 +27,7 @@ export function createArticulosRouter(
   router.get('/:id', articulosController.obtenerArticuloPorId);
 
   // Actualización y eliminación — requiere autenticación
-  router.put('/:id', authMiddleware, articulosController.actualizarArticulo);
+  router.put('/:id', articulosController.actualizarArticulo);
 
   router.patch('/:id/estado', authMiddleware, isAdmin, articulosController.cambiarEstado);
   router.patch('/:id/tiempo-lectura', authMiddleware, articulosController.actualizarTiempoLectura);

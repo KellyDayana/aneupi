@@ -42,6 +42,7 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
     const [isLoading, setIsLoading] = useState(false);
     const [showAllComments, setShowAllComent] = useState(false);
     const [vistas, setVistas] = useState<number>(articulo.views || 0);
+    const [contenido, setContenido] = useState<string>(articulo.description || '');
 
 
     // Cargar comentarios reales desde la API
@@ -78,16 +79,19 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
 
     useEffect(() => {
         fetchComentarios();
-        // Obtener vistas actualizadas 
+        // Obtener vistas actualizadas y contenido real desde la API
         if (articulo?.id) {
             fetch(`${API}/api/articulos/${articulo.id}`)
                 .then(r => r.json())
-                .then(data => { if (data.success) setVistas(data.data.vistas); })
+                .then(data => {
+                    if (data.success) {
+                        setVistas(data.data.vistas);
+                        if (data.data.contenido) setContenido(data.data.contenido);
+                    }
+                })
                 .catch(() => {});
         }
     }, [fetchComentarios, articulo?.id]);
-
-
 
     // Eliminar comentario en la API
     const eliminarComentario = async (id: number) => {
@@ -190,9 +194,11 @@ export default function ArticuloCompleto({ articulo, onBack }: ArticuloCompletoP
                     <div className="border-l-[5px] border-[#003952] pl-6 py-1 my-10 bg-gray-50/50 rounded-r-xl">
                         <p className="text-gray-500 italic text-lg font-medium">{articulo.description}</p>
                     </div>
-                    <div className="font-normal prose prose-slate max-w-none">
-                        <p>Contenido completo del artículo cargado satisfactoriamente desde la base de datos.</p>
-                    </div>
+                    {contenido && contenido !== articulo.description && (
+                        <div className="font-normal prose prose-slate max-w-none">
+                            <p>{contenido}</p>
+                        </div>
+                    )}
                 </div>
 
                 {/* SECCIÓN DE COMENTARIOS CON EXPANSIÓN */}

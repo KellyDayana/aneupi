@@ -374,6 +374,7 @@ export default function ArticulosPage() {
   const [selectedArticle, setSelectedArticle] = useState<any>(null)
   const [displayedArticle, setDisplayedArticle] = useState<any>(null)
   const [vistasArticulo, setVistasArticulo] = useState<number>(0);
+  const [contenidoArticulo, setContenidoArticulo] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState("")
   const [showSearchOptions, setShowSearchOptions] = useState(false)
@@ -720,7 +721,14 @@ export default function ArticulosPage() {
                   )}
 
                   <div className="text-gray-700">
-                    <p>{displayedArticle.excerpt}</p>
+                    {/* Resumen en caja destacada */}
+                    <div className="border-l-4 border-[#003952] pl-4 py-1 my-4 bg-gray-50 rounded-r-lg">
+                      <p className="text-gray-500 italic text-sm font-medium">{displayedArticle.excerpt}</p>
+                    </div>
+                    {/* Contenido completo */}
+                    {contenidoArticulo && contenidoArticulo !== displayedArticle.excerpt && (
+                      <p className="mt-4 leading-relaxed">{contenidoArticulo}</p>
+                    )}
                   </div>
                 </article>
 
@@ -818,7 +826,10 @@ export default function ArticulosPage() {
                                           try {
                                             const res = await fetch (`${API_URL}/api/articulos/${article.id}`);
                                             const data = await res.json();
-                                            if (data.success)setVistasArticulo (data.data.vistas); 
+                                            if (data.success) {
+                                              setVistasArticulo(data.data.vistas);
+                                              setContenidoArticulo(data.data.contenido || article.excerpt || '');
+                                            }
                                           }catch(e) {}
                                         }}
                                         className="inline-flex items-center gap-2 bg-[#003952] text-white px-3 py-1 rounded-lg hover:bg-[#002a3a] transition-colors font-medium text-xs w-auto"

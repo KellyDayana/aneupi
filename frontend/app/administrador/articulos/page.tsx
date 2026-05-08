@@ -7,6 +7,8 @@ import { ArticulosRevisionPanel } from '@/components/articulos-revision-panel';
 import { AddArticleForm } from '@/components/add-article-form';
 import { ArticulosPapelera } from '@/components/articulos-papelera';
 import { useUser } from '@/contexts/user-context';
+import { title } from 'process';
+import { Description } from '@radix-ui/react-toast';
 
 const API = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
 
@@ -24,6 +26,9 @@ interface Article {
     imageColor: string;
     url: string;
     imageUrl?: string;
+    estado?: string;
+    readTime?: string;
+    contenido?: string;
 }
 
 interface Trending {
@@ -46,6 +51,9 @@ function articleFromApi(item: any): Article {
         imageColor: 'bg-slate-700',
         url: item.url_redireccion || '',
         imageUrl: item.url_imagen || '',
+        estado: item.estado || '',
+        readTime: item.tiempo_lectura ? `${item.tiempo_lectura} min` : '',
+        contenido: item.contenido || '',
     };
 }
 
@@ -65,21 +73,20 @@ export default function ArticulosAdminPage() {
     const [articles, setArticles] = useState<Article[]>([]);
     const [loadingArticles, setLoadingArticles] = useState(false);
 
-    const fetchArticulos = useCallback(async () => {
+    const fetchArticulos = useCallback(async (search: string = '') => {
         setLoadingArticles(true);
         try {
-            // Excluir artículos OCULTO (en papelera) de la lista principal
-            const res = await fetch(`${API}/api/articulos?take=100&estado=PUBLICADO`);
+            const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : '';
+            // Traer todos excepto OCULTO — si hay búsqueda no filtrar por estado para mostrar todos los resultados
+            const url = search.trim()
+                ? `${API}/api/articulos?take=100${searchParam}`
+                : `${API}/api/articulos?take=100&estado=PUBLICADO`;
+            const res = await fetch(url);
             const data = await res.json();
             if (data?.data?.length) {
-                setArticles(data.data.map(articleFromApi));
+                setArticles(data.data.filter((a: any) => a.estado !== 'OCULTO').map(articleFromApi));
             } else {
-                // Si no hay publicados, intentar con todos excepto ocultos
-                const res2 = await fetch(`${API}/api/articulos?take=100`);
-                const data2 = await res2.json();
-                if (data2?.data?.length) {
-                    setArticles(data2.data.filter((a: any) => a.estado !== 'OCULTO').map(articleFromApi));
-                }
+                setArticles([]);
             }
         } catch (e) {
             console.error('Error cargando artículos:', e);
@@ -89,6 +96,14 @@ export default function ArticulosAdminPage() {
     }, []);
 
     useEffect(() => { fetchArticulos(); }, [fetchArticulos]);
+
+    // Búsqueda con debounce — espera 400ms después de que el usuario deja de escribir
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchArticulos(searchTerm);
+        }, 400);
+        return () => clearTimeout(timer);
+    }, [searchTerm, fetchArticulos]);
 
     // --- LÓGICA DE BÚSQUEDA Y AGRUPACIÓN ---
     const filteredArticles = articles.filter(article =>
@@ -113,7 +128,7 @@ export default function ArticulosAdminPage() {
             const headers: Record<string, string> = {};
             if (token) headers['Authorization'] = `Bearer ${token}`;
             await fetch(`${API}/api/articulos/${id}`, { method: 'DELETE', headers });
-            fetchArticulos();
+            fetchArticulos(searchTerm);
         } catch (e) {
             console.error('Error moviendo artículo a papelera:', e);
         }
@@ -288,6 +303,16 @@ export default function ArticulosAdminPage() {
                 onClose={() => { setIsFormOpen(false); setSelectedArticle(null); }}
                 onSubmit={() => { fetchArticulos(); }}
                 isAdmin={true}
+                initialData={selectedArticle ? {
+                    title: selectedArticle.title,
+                    author: selectedArticle.author,
+                    description: selectedArticle.description,
+                    contenido: selectedArticle.contenido,
+                    category: selectedArticle.category, 
+                    readTime: selectedArticle.readTime,
+                    imageUrl: selectedArticle.imageUrl,
+                    articuloId: selectedArticle.id,
+                }:undefined}
             />
         </div>
     );

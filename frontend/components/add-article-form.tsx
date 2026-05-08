@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from '@/hooks/use-toast'
 import { X, BookOpen, Cloud, FolderIcon, Clock, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { useUser } from "@/contexts/user-context"
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000"
 
 const CATEGORY_ID_MAP: Record<string, number> = {
+  "Noticias Nacionales": 3,
   "Tecnología": 5,
   "Medio Ambiente": 6,
   "Educación": 7,
@@ -28,25 +29,55 @@ interface AddArticleFormProps {
   onClose: () => void
   onSubmit: (article: any) => void
   isAdmin?: boolean
+  initialData?: {
+    title?: string
+    author?: string
+    description?: string
+    contenido?: string
+    category?: string
+    readTime?: string
+    imageUrl?: string
+    articuloId?: number
+  }
 }
 
-export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp = false }: AddArticleFormProps) {
+export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp = false, initialData }: AddArticleFormProps) {
   const [formData, setFormData] = useState({
-    title: "",
-    author: "",
-    description: "",
-    category: "",
-    readTime: "",
+    title: initialData?.title || "",
+    author: initialData?.author || "",
+    description: initialData?.description || "",
+    contenido: initialData?.contenido || "",
+    category: initialData?.category || "",
+    readTime: initialData?.readTime?.replace(' min', '') || "",
     imageSource: "url",
-    imageUrl: "",
+    imageUrl: initialData?.imageUrl || "",
     imageFile: null as File | null,
   })
   const [imageError, setImageError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [submitResult, setSubmitResult] = useState<"idle" | "pending" | "published">("idle")
+  const [submitResult, setSubmitResult] = useState<"idle" | "pending" | "published" | "updated">("idle")
   const [submitError, setSubmitError] = useState<string | null>(null)
   const { toast } = useToast()
   const { token, userId, userRole } = useUser()
+
+  // Sincronizar formData cuando cambia initialData (al abrir para editar otro artículo)
+  useEffect(() => {
+    if (isOpen) {
+      setFormData({
+        title: initialData?.title || "",
+        author: initialData?.author || "",
+        description: initialData?.description || "",
+        contenido: initialData?.contenido || "",
+        category: initialData?.category || "",
+        readTime: initialData?.readTime?.replace(' min', '') || "",
+        imageSource: "url",
+        imageUrl: initialData?.imageUrl || "",
+        imageFile: null,
+      })
+      setSubmitResult("idle")
+      setSubmitError(null)
+    }
+  }, [isOpen, initialData?.title])
 
   // Si se pasa isAdmin como prop (panel admin), usar eso; si no, usar el rol del contexto
   const esAdmin = isAdminProp || userRole === "superadmin"
@@ -93,7 +124,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
       const body: Record<string, any> = {
         titulo: formData.title,
         descripcion: formData.description,
-        contenido: formData.description,
+        contenido: formData.contenido || formData.description,
         url_imagen: imageUrl || "https://via.placeholder.com/300",
         url_preview_imagen: imageUrl || "https://via.placeholder.com/150",
         tiempo_lectura: readTimeMinutes,
@@ -112,8 +143,15 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
       const headers: Record<string, string> = { "Content-Type": "application/json" }
       if (token) headers["Authorization"] = `Bearer ${token}`
 
-      const res = await fetch(`${API_URL}/api/articulos`, {
-        method: "POST",
+      // Si hay articuloId es edición (PUT), si no es creación (POST)
+      const esEdicion = !!initialData?.articuloId
+      const url = esEdicion
+        ? `${API_URL}/api/articulos/${initialData!.articuloId}`
+        : `${API_URL}/api/articulos`
+      const method = esEdicion ? "PUT" : "POST"
+
+      const res = await fetch(url, {
+        method,
         headers,
         body: JSON.stringify(body),
       })
@@ -121,9 +159,9 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Error al enviar el artículo")
 
-      setSubmitResult(esAdmin ? "published" : "pending")
+      setSubmitResult(esEdicion ? "updated" : esAdmin ? "published" : "pending")
 
-      if (esAdmin && data.data) {
+      if (data.data) {
         onSubmit({
           title: formData.title,
           description: formData.description,
@@ -132,7 +170,6 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
           readTime: `${readTimeMinutes} min`,
           imageSource: formData.imageSource,
           imageUrl,
-          imageFile: formData.imageFile,
         })
       }
     } catch (err) {
@@ -151,7 +188,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
   const handleClose = () => {
     setSubmitResult("idle")
     setFormData({
-      title: "", author: "", description: "", category: "",
+      title: "", author: "", description: "", contenido: "", category: "",
       readTime: "", imageSource: "url", imageUrl: "", imageFile: null,
     })
     onClose()
@@ -175,6 +212,11 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
               <p className="text-gray-500 text-sm mb-6">
                 Tu artículo fue recibido correctamente. Será revisado por nuestro equipo editorial y publicado una vez aprobado.
               </p>
+            </>
+          ) : submitResult === "updated" ? (
+            <>
+              <h2 className="text-xl font-bold text-gray-900 mb-2">¡Artículo actualizado!</h2>
+              <p className="text-gray-500 text-sm mb-6">Los cambios fueron guardados correctamente.</p>
             </>
           ) : (
             <>
@@ -217,7 +259,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span className="text-yellow-600">●</span>
-                Título del Artículo:
+                Título:
               </label>
               <input
                 type="text"
@@ -252,17 +294,38 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
                 <span className="text-yellow-600">●</span>
                 <span className="text-yellow-600">●</span>
               </span>
-              Descripción del Artículo:
+              Resumen:
             </label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               required
-              placeholder="Escribe una descripción atractiva que capture la atención del lector..."
-              rows={4}
+              placeholder="Escribe un resumen corto y atractivo del artículo..."
+              rows={3}
               className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:border-[#0D3F50] focus:ring-2 focus:ring-[#0D3F50] focus:ring-opacity-30 text-gray-800 placeholder-gray-400 resize-none"
             />
+          </div>
+
+          {/* Campo de contenido completo */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <span className="flex gap-1">
+                <span className="text-yellow-600">●</span>
+                <span className="text-yellow-600">●</span>
+                <span className="text-yellow-600">●</span>
+              </span>
+              Descripción:
+            </label>
+            <textarea
+              name="contenido"
+              value={formData.contenido}
+              onChange={handleInputChange}
+              placeholder="Escribe la descripción completa del artículo aquí..."
+              rows={8}
+              className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-lg focus:outline-none focus:border-[#0D3F50] focus:ring-2 focus:ring-[#0D3F50] focus:ring-opacity-30 text-gray-800 placeholder-gray-400 resize-none"
+            />
+            <p className="text-xs text-gray-400 mt-1">Si lo dejas vacío, se usará la descripción como contenido.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-6">
@@ -279,6 +342,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
                 className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg focus:outline-none focus:border-[#0D3F50] text-gray-700 font-medium cursor-pointer"
               >
                 <option value="">Selecciona una categoría</option>
+                <option value="Noticias Nacionales">Noticias Nacionales</option>
                 <option value="Tecnología">Tecnología</option>
                 <option value="Medio Ambiente">Medio Ambiente</option>
                 <option value="Educación">Educación</option>
@@ -405,7 +469,7 @@ export function AddArticleForm({ isOpen, onClose, onSubmit, isAdmin: isAdminProp
               className="px-8 py-2 bg-[#0D3F50] text-white hover:bg-[#0A2D3A] rounded-lg font-semibold transition flex items-center gap-2 disabled:opacity-60"
             >
               <span>+</span>
-              {submitting ? "Enviando..." : esAdmin ? "Publicar Artículo" : "Enviar para Revisión"}
+              {submitting ? "Guardando..." : initialData?.articuloId ? "Guardar Cambios" : esAdmin ? "Publicar Artículo" : "Enviar para Revisión"}
             </Button>
           </div>
         </form>
