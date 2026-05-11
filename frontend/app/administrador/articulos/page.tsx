@@ -217,6 +217,21 @@ export default function ArticulosAdminPage() {
                     <>
 
                     {/* CUERPO POR CATEGORÍAS */}
+                    {loadingArticles ? (
+                        <div className="flex items-center justify-center py-20 text-gray-400">
+                            <svg className="animate-spin w-8 h-8 mr-3 text-[#003952]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span className="text-[14px] font-medium">Cargando artículos...</span>
+                        </div>
+                    ) : Object.keys(groupedArticles).length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+                            <BookOpen size={40} className="mb-3 opacity-30" />
+                            <p className="text-[14px] font-medium">No se encontraron artículos</p>
+                            {searchTerm && <p className="text-[12px] mt-1">para "{searchTerm}"</p>}
+                        </div>
+                    ) : (
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                         {/* Lado Izquierdo: Artículos (3 columnas) */}
                         <div className="lg:col-span-3 space-y-10">
@@ -293,6 +308,7 @@ export default function ArticulosAdminPage() {
                             </div>
                         </div>
                     </div>
+                    )} {/* fin condicional loadingArticles */}
                     </>
                     )}
                 </>
