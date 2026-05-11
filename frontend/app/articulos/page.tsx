@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { SiteHeader } from "@/components/site-header"
 import { SiteFooter } from "@/components/site-footer"
 import { Card } from "@/components/ui/card-articulos"
@@ -369,6 +370,7 @@ const FALLBACK_ARTICLES = [
 export default function ArticulosPage() {
   // Aqui va la api de articulos, si no se conecta, se cargan los articulos de respaldo (FALLBACK_ARTICLES)
   const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+  const router = useRouter()
 
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [selectedArticle, setSelectedArticle] = useState<any>(null)
@@ -821,17 +823,7 @@ export default function ArticulosPage() {
                                         </span>
                                       </div>
                                       <button
-                                        onClick={async() => {
-                                          setDisplayedArticle(article);
-                                          try {
-                                            const res = await fetch (`${API_URL}/api/articulos/${article.id}`);
-                                            const data = await res.json();
-                                            if (data.success) {
-                                              setVistasArticulo(data.data.vistas);
-                                              setContenidoArticulo(data.data.contenido || article.excerpt || '');
-                                            }
-                                          }catch(e) {}
-                                        }}
+                                        onClick={() => router.push(`/articulos/${article.id}`)}
                                         className="inline-flex items-center gap-2 bg-[#003952] text-white px-3 py-1 rounded-lg hover:bg-[#002a3a] transition-colors font-medium text-xs w-auto"
                                       >
                                         Leer más <ArrowRight className="w-3 h-3" />
